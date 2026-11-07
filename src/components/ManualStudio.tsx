@@ -45,7 +45,7 @@ export default function ManualStudio() {
     const abort = new AbortController(); controller.current = abort;
     setBusy(true); setFilename(file.name); setError(""); setPendingFile(null); setResult(null);
     URL.revokeObjectURL(sourceURL.current); sourceURL.current = "";
-    const timeout = setTimeout(() => abort.abort("timeout"), 240000);
+    const timeout = setTimeout(() => abort.abort("timeout"), 15 * 60 * 1000);
     try {
       const generated = await generateGuide(key, [file], MODELS[0].id, abort.signal, setPhase);
       if (abort.signal.aborted || !mounted.current) return;

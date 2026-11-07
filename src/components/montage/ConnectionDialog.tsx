@@ -40,7 +40,7 @@ export default function ConnectionDialog({ open, connected, pendingName, onDismi
       <input id="openai-key" name="openai-key" type="password" value={draft} onChange={e => setDraft(e.target.value)} placeholder="sk-proj-…" autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false} data-1p-ignore="true" data-lpignore="true" aria-describedby="connection-privacy" autoFocus/>
       <button className="connection-submit" type="submit" disabled={!valid}>{pendingName ? "Conectar y continuar" : "Conectar OpenAI"}</button>
     </form>
-    <p id="connection-privacy" className="connection-note">La clave se borra al recargar. El manual se envía a OpenAI y el uso se factura en tu cuenta de API. Si los datos no encajan, se solicita una única revisión adicional.</p>
+    <p id="connection-privacy" className="connection-note">Usamos GPT-6.1 Sol con razonamiento Muy alto. La clave se borra al recargar. El manual se envía a OpenAI y el uso se factura en tu cuenta de API. Si los datos no encajan, se solicita una única revisión adicional.</p>
     <div className="connection-links"><a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer">Dónde encontrar mi clave <span aria-hidden="true">↗</span></a>{connected && <button onClick={() => { setDraft(""); onDisconnect(); }}>Desconectar</button>}</div>
   </dialog>;
 }

@@ -28,13 +28,17 @@ El manual original solo tiene una URL local temporal en la pestaña. No se publi
 
 ## Comprobación y revisión de la respuesta
 
-OpenAI interpreta el PDF con `gpt-5.4-mini` y devuelve un objeto con esquema estricto. El programa comprueba medidas, páginas declaradas, ids únicos, referencias, uso de todas las piezas y correspondencia entre los pasos y las posiciones finales. Esta consistencia no demuestra la fidelidad de la interpretación.
+OpenAI interpreta el PDF con **`gpt-6.1-sol` y `reasoning.effort: "xhigh"` (Muy alto)**. No se cambia a otro modelo si el proyecto no tiene acceso. La respuesta usa un esquema estricto y un máximo de 64.000 tokens de salida, que incluye el razonamiento. La espera admite hasta 15 minutos y puede cancelarse.
 
-La corrección del aviso «pieza inexistente o repetida» distingue estos casos:
+El formato de generación evita dos fuentes de incoherencia de las versiones anteriores:
 
-- Una repetición exactamente idéntica se elimina sin cambiar acciones o posiciones.
-- Los espacios accidentales de una referencia solo se recortan si el resultado coincide exactamente con un id existente.
-- Una referencia inexistente o dos poses diferentes para una pieza en el mismo paso se rechazan. Se solicita una única revisión con el manual original y el error preciso. La nueva respuesta debe superar de nuevo todas las comprobaciones.
+- Cada pieza contiene sus propios movimientos y el índice del paso en que ocurren. El programa asigna los ids y construye las referencias. La IA no tiene que repetir identificadores entre inventario y animación.
+- La posición final se obtiene del último movimiento de la pieza. No se pide una segunda copia de las coordenadas que luego deba coincidir.
+- Los cilindros declaran un solo diámetro. Cada pieza física repetida mantiene una entrada independiente, aunque comparta el código impreso con otras piezas.
+
+Se comprueban medidas positivas, páginas declaradas, índices de pasos, piezas sin movimientos y movimientos contradictorios. Los movimientos idénticos repetidos se deduplican. El plan compilado vuelve a superar la validación de ids, referencias y poses finales antes de llegar al motor 3D. Esta consistencia no demuestra la fidelidad de la interpretación.
+
+La respuesta llega por streaming SSE. Solo se acepta el evento final con la guía completa; los fragmentos de JSON no se muestran como un montaje. Una desconexión o una respuesta incompleta detiene el proceso.
 
 La revisión puede consumir una segunda llamada de API. Se informa de ello antes de conectar y durante el proceso. Nunca se inventa una pieza ni se elimina una acción contradictoria para aceptar el resultado. Si falla la revisión, se muestra el error y no se presenta un montaje incoherente.
 
@@ -74,7 +78,9 @@ GitHub Actions ejecuta las comprobaciones y publica `out/` al actualizar `main`.
 - `src/components/montage/`: carga, diálogo y reproductor con pasos.
 - `src/app/prueba-leroy/montage.css`: diseño adaptable.
 - `src/lib/ai/openai.ts`: peticiones y revisión limitada.
-- `src/lib/ai/guide.ts`: esquema, validación y conversión al plan 3D.
+- `src/lib/ai/blueprint.ts`: formato de generación y compilador de movimientos por pieza.
+- `src/lib/ai/response.ts`: lectura de eventos SSE y cancelación.
+- `src/lib/ai/guide.ts`: formato interno, validación y conversión al plan 3D.
 - `src/lib/video.ts`: grabación y capítulos en el dispositivo.
 - `tests/guide.test.mjs`: regresiones de referencias y revisión.
 - `src/engine/`: motor 3D de Bygga.
@@ -82,6 +88,6 @@ GitHub Actions ejecuta las comprobaciones y publica `out/` al actualizar `main`.
 - [Decisiones de UX y referencias](docs/diseno-ux.md).
 - [Comprobaciones y límites](docs/validacion.md).
 
-Documentación consultada el 7 de noviembre de 2026: [PDF](https://developers.openai.com/api/docs/guides/file-inputs), [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs), [estado de conversación](https://developers.openai.com/api/docs/guides/conversation-state), [GPT-5.4 mini](https://developers.openai.com/api/docs/models/gpt-5.4-mini), [exportación estática de Next.js](https://nextjs.org/docs/app/guides/static-exports) y [GitHub Pages con Actions](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+Documentación consultada el 7 de noviembre de 2026: [GPT-6.1 Sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol), [migración a GPT-6](https://developers.openai.com/api/docs/guides/latest-model/gpt-6-astra#migration-quickstart), [PDF](https://developers.openai.com/api/docs/guides/file-inputs), [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs), [streaming](https://developers.openai.com/api/docs/guides/streaming-responses), [estado de conversación](https://developers.openai.com/api/docs/guides/conversation-state), [exportación estática de Next.js](https://nextjs.org/docs/app/guides/static-exports) y [GitHub Pages con Actions](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 
 Proyecto experimental independiente, sin afiliación oficial con Leroy Merlin. La licencia MIT no concede derechos sobre marcas ni manuales de terceros.
