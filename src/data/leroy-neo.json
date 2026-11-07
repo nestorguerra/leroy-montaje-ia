@@ -1,0 +1,51 @@
+{
+  "name": "Cómoda SPACEO NEO",
+  "reference": "88887206",
+  "manufacturerReference": "5996CO3T / 20037C",
+  "widthCm": 76.7,
+  "heightCm": 82.4,
+  "depthCm": 39.9,
+  "drawers": 3,
+  "productUrl": "https://www.leroymerlin.es/productos/comoda-spaceo-neo-roble-3-cajones-de-76-7x-82-4x39-9-cm-88887206.html",
+  "manualUrl": "https://media.adeo.com/media/3659046/media.pdf",
+  "manualStepPages": [5, 6, 7, 8, 9, 9, 10, 11, 11, 12, 13, 14, 15, 16],
+  "confirmed": [
+    "76,7 cm de ancho, 82,4 cm de alto y 39,9 cm de fondo",
+    "Tres cajones, el superior de menor altura, con guías metálicas",
+    "23 tableros: 8 para la estructura y 5 para cada cajón",
+    "Dimensiones de los tableros y códigos de piezas en la página 3 del manual",
+    "14 pasos: cajones, laterales, travesaños, base, trasera, tapa, fijaciones e inserción de cajones",
+    "El manual pide dos personas al unir la estructura y exige fijarla a la pared"
+  ],
+  "assumptions": [
+    "Posiciones de guías, travesaños, ranuras y perforaciones aproximadas",
+    "Herrajes esquemáticos: sus tamaños dibujados no son cotas de fabricación",
+    "Desplazamientos y giros de las animaciones preparados para explicar el proceso",
+    "Colores neutros para explicar la forma. No reproducen el acabado de roble del producto",
+    "Las letras del dibujo son etiquetas de esta prueba; el inventario conserva aparte los códigos del manual"
+  ],
+  "pending": [
+    "Validar la posición exacta y el encaje de todas las uniones con las piezas reales",
+    "Revisar las cargas: la ficha comercial indica 16 y 10 kg; el manual muestra 15 y 9 kg",
+    "Elegir las fijaciones de pared con una persona competente según el soporte real",
+    "Revisar la guía mediante un montaje físico antes de ofrecerla como instrucciones de uso"
+  ],
+  "panels": [
+    {"code":"102","name":"Lateral derecho del cajón superior","qty":1,"mm":[350,139,12]},
+    {"code":"103","name":"Lateral izquierdo del cajón superior","qty":1,"mm":[350,139,12]},
+    {"code":"106","name":"Lateral derecho del cajón grande","qty":2,"mm":[350,196,12]},
+    {"code":"107","name":"Lateral izquierdo del cajón grande","qty":2,"mm":[350,196,12]},
+    {"code":"9","name":"Travesaño","qty":3,"mm":[732,50,12]},
+    {"code":"104","name":"Frente del cajón superior","qty":1,"mm":[762,215,15]},
+    {"code":"108","name":"Frente del cajón grande","qty":2,"mm":[762,239,15]},
+    {"code":"11","name":"Base","qty":1,"mm":[764,399,15]},
+    {"code":"13","name":"Tapa","qty":1,"mm":[767,399,18]},
+    {"code":"8","name":"Costado derecho","qty":1,"mm":[771,384,15]},
+    {"code":"10","name":"Costado izquierdo","qty":1,"mm":[771,384,15]},
+    {"code":"105","name":"Trasera del cajón grande","qty":2,"mm":[700,196,13]},
+    {"code":"101","name":"Trasera del cajón superior","qty":1,"mm":[700,138,13]},
+    {"code":"2","name":"Fondo del cajón","qty":3,"mm":[710,349,3]},
+    {"code":"12","name":"Trasera de la cómoda","qty":1,"mm":[787,748,3]}
+  ],
+  "fittings": {"ADM":8,"ADU":52,"Ai":2,"BLL":1,"BSD":2,"BXC":4,"CF":2,"HV":1,"HW":2,"VG":13,"VR":6,"XN":4,"ANK":12,"EP":8,"HR":6}
+}

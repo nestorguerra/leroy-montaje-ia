@@ -1,0 +1,37 @@
+{
+  "name": "Mesa auxiliar DAY",
+  "reference": "79676204",
+  "manufacturerReference": "72314",
+  "diameterCm": 40,
+  "heightCm": 40,
+  "legs": 3,
+  "topMaterial": "MDF",
+  "legMaterial": "Bambú",
+  "color": "Gris",
+  "productUrl": "https://www.leroymerlin.es/productos/mesa-auxiliar-day-de-40x40x40-cm-en-color-gris-79676204.html",
+  "manualUrl": "https://media.adeo.com/media/5442628/media.pdf",
+  "manualPages": [
+    1,
+    2
+  ],
+  "confirmed": [
+    "Diámetro y altura de 40 cm",
+    "Tres patas",
+    "Tablero MDF y patas de bambú",
+    "Montaje por rosca sin herramientas externas",
+    "Preparar el tablero boca abajo, localizar los anclajes, roscar las patas y comprobar la estabilidad"
+  ],
+  "assumptions": [
+    "Grosor del tablero: 18 mm, solo para dibujar",
+    "Diámetro de las patas: 32 mm, solo para dibujar",
+    "Anclajes a 125 mm del centro, separados 120 grados, solo para dibujar",
+    "Patas rectas simplificadas. No reproduce la inclinación ni las uniones exactas",
+    "Marcas de anclaje ilustrativas: no son un plano para taladrar"
+  ],
+  "pending": [
+    "Medidas de cada componente y posición exacta de los anclajes",
+    "Geometría real de las patas y de la rosca",
+    "Carga máxima y revisión por una persona que conozca el producto",
+    "Validación mediante montaje real"
+  ]
+}

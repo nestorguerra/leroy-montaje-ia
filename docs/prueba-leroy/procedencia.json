@@ -1,0 +1,19 @@
+{
+  "fecha": "2026-11-06",
+  "upstream": "https://github.com/Nutlope/bygga",
+  "revision_base": "a02629a7d6454e2e28412ca7c11c69fa838304ff",
+  "ficha": "https://www.leroymerlin.es/productos/mesa-auxiliar-day-de-40x40x40-cm-en-color-gris-79676204.html",
+  "manual_enlazado_en_ficha": "https://media.adeo.com/media/5442628/media.pdf",
+  "segundo_producto": {
+    "nombre": "Cómoda SPACEO NEO roble",
+    "referencia": "88887206",
+    "ficha": "https://www.leroymerlin.es/productos/comoda-spaceo-neo-roble-3-cajones-de-76-7x-82-4x39-9-cm-88887206.html",
+    "manual_enlazado_en_ficha": "https://media.adeo.com/media/3659046/media.pdf",
+    "manual_modelo": "5996CO3T / 20037C",
+    "paginas_por_etapa": [5,6,7,8,9,9,10,11,11,12,13,14,15,16],
+    "tableros": 23,
+    "discrepancia_por_validar": "Cargas de ficha 16/10 kg frente a manual 15/9 kg"
+  },
+  "alcance": "Prueba local limitada a dos productos: mesa DAY y cómoda NEO. Datos preparados y geometría simplificada, sin extracción automática ni voz.",
+  "validacion": "DAY: siete pasos, variación y restablecimiento de medidas. NEO: navegación por 14 etapas, recuento de 23 tableros y cantidades de herrajes cotejadas. TypeScript sin errores. No hay validación física."
+}
