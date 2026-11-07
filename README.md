@@ -1,39 +1,54 @@
-# Del manual al montaje, con OpenAI
+# Montaje. Tu manual, en movimiento.
 
-Copia independiente de la prueba Leroy Merlin, basada en el motor 3D de [Bygga](https://github.com/Nutlope/bygga), con su licencia MIT y aviso de autoría conservados.
+[Abrir la aplicación](https://nestorguerra.github.io/leroy-montaje-ia/)
 
-## Usar la aplicación
+Copia independiente de la prueba Leroy Merlin, basada en el motor 3D de [Bygga](https://github.com/Nutlope/bygga). Se conservan su licencia MIT y aviso de autoría.
 
-1. Abre la pestaña **Tu manual con IA**.
-2. Introduce tu propia API Key de OpenAI. Se oculta por defecto; puedes mostrarla o borrarla.
-3. Sube un PDF completo o hasta 12 imágenes de sus páginas, con un máximo total de 20 MB. Ordena las imágenes con las flechas.
-4. Elige el modelo y pulsa **Crear mi guía animada**. El consumo se factura en tu proyecto de OpenAI.
-5. Contrasta los pasos con el manual. Cambia entre producto, piezas y montaje; gira, pausa o repite la animación.
-6. Reproduce la secuencia completa o descarga un vídeo con los pasos escritos. Puedes guardar también el JSON de la interpretación.
+## Uso
 
-La mesa DAY y la cómoda SPACEO NEO siguen disponibles como ejemplos preparados a mano, sin clave y sin consumo de API.
+1. Arrastra el PDF completo del manual, hasta 20 MB, o toca la zona para elegirlo.
+2. Si hace falta, introduce tu API Key de OpenAI. Solo se pide una vez por sesión.
+3. La guía aparece automáticamente: animación a la izquierda y pasos a la derecha. En móvil, los pasos quedan debajo.
+
+Elegir un paso cambia la animación. El vídeo se prepara en el dispositivo mientras la guía ya está disponible. Después se puede reproducir, recorrer o guardar con los controles del reproductor. Para empezar otra guía, basta con arrastrar otro PDF.
+
+No hay selectores de productos, modelos, inventario ni un botón adicional de generación. La mesa DAY aparece como ejemplo visual en la portada. Los datos originales de DAY y SPACEO NEO se conservan en el código.
 
 ## Clave y archivos
 
-Esta versión estática funciona en GitHub Pages y hace la petición directamente desde el navegador a `https://api.openai.com/v1/responses`. Cada usuario aporta su propia clave. No hay una clave del propietario en el código ni en GitHub Secrets.
+GitHub Pages sirve una aplicación estática. La petición va directamente del navegador a `https://api.openai.com/v1/responses`, con la clave aportada por cada usuario. No se incluye una clave del propietario en el código ni en GitHub Secrets.
 
-La aplicación conserva la clave solo en el estado de React durante la sesión de la pestaña. No usa cookies, localStorage, sessionStorage, IndexedDB ni un servidor propio para guardarla. No registra la clave ni el contenido de los manuales. El botón de borrar elimina la clave del estado y cancela una petición pendiente.
+La clave se mantiene en memoria de React. Se borra al recargar o al pulsar **Desconectar** dentro de la conexión OpenAI. No se guarda en cookies, localStorage, sessionStorage, IndexedDB ni un servidor propio. No se registra la clave ni el contenido de los manuales.
 
-El manual se envía a OpenAI solo al pulsar el botón de generar. Se usa `store: false`; esto no elimina las políticas de tratamiento o retención que OpenAI aplique a la cuenta. Los enlaces al manual original son URLs locales temporales y caducan al cerrar la página. El JSON y el vídeo no incluyen la clave ni el archivo original.
+Soltar o elegir un PDF inicia la petición si ya hay una clave. En caso contrario, conectar la clave inicia el manual pendiente. Se usa `store: false`; esto no elimina las políticas de tratamiento o retención aplicables a la cuenta de OpenAI. El consumo se factura en esa cuenta de API.
 
-Una clave usada en el navegador es accesible para el propio navegador, sus extensiones y quien controle ese dispositivo. Esta opción está pensada como prueba personal con clave propia. Para un servicio con una clave compartida, hace falta un servidor con autenticación y control de gasto. OpenAI documenta este límite en su [biblioteca JavaScript](https://developers.openai.com/api/reference/typescript).
+Una clave usada en el navegador puede ser leída por el propio navegador, sus extensiones y quien controle el dispositivo. Este prototipo usa una clave personal por sesión. Un servicio con una clave compartida requiere un servidor con autenticación y control de gasto. Véase la [biblioteca JavaScript de OpenAI](https://developers.openai.com/api/reference/typescript).
 
-## Qué genera y qué no
+El manual original solo tiene una URL local temporal en la pestaña. No se publica en GitHub. El vídeo no contiene la clave ni el PDF original.
 
-OpenAI interpreta el inventario y los pasos usando el PDF (texto e imágenes) o las fotografías. Devuelve un objeto con un esquema estricto. La aplicación comprueba tipos, límites, referencias de piezas, páginas declaradas, uso de todas las piezas y correspondencia de las posiciones finales antes de enviarlo al motor de Bygga. Esta validación comprueba consistencia de los datos; no demuestra que la lectura del manual sea correcta.
+## Comprobación y revisión de la respuesta
 
-La geometría usa cajas y cilindros. Las dimensiones, uniones y movimientos inferidos se señalan como aproximados. El manual sigue siendo la referencia: no usar el dibujo para fabricar, taladrar o validar anclajes. El número de página y el orden interpretados por la IA también pueden contener errores.
+OpenAI interpreta el PDF con `gpt-5.4-mini` y devuelve un objeto con esquema estricto. El programa comprueba medidas, páginas declaradas, ids únicos, referencias, uso de todas las piezas y correspondencia entre los pasos y las posiciones finales. Esta consistencia no demuestra la fidelidad de la interpretación.
 
-El vídeo es una grabación de la animación 3D con los pasos escritos, sin audio. No es un vídeo fotorrealista ni una generación con Sora. Se exporta en tiempo real con MediaRecorder, en WebM o MP4 según el navegador. Hay que mantener la pestaña visible. El modelo no genera archivos de código ni ejecuta instrucciones incluidas en el manual.
+La corrección del aviso «pieza inexistente o repetida» distingue estos casos:
 
-No se reintentan automáticamente peticiones fallidas, incompletas o canceladas. Cancelar la espera no garantiza que OpenAI no haya procesado o facturado la petición. No se incluyen galerías públicas ni almacenamiento de manuales.
+- Una repetición exactamente idéntica se elimina sin cambiar acciones o posiciones.
+- Los espacios accidentales de una referencia solo se recortan si el resultado coincide exactamente con un id existente.
+- Una referencia inexistente o dos poses diferentes para una pieza en el mismo paso se rechazan. Se solicita una única revisión con el manual original y el error preciso. La nueva respuesta debe superar de nuevo todas las comprobaciones.
 
-## Desarrollo local
+La revisión puede consumir una segunda llamada de API. Se informa de ello antes de conectar y durante el proceso. Nunca se inventa una pieza ni se elimina una acción contradictoria para aceptar el resultado. Si falla la revisión, se muestra el error y no se presenta un montaje incoherente.
+
+Los errores de red, clave, saldo, rechazo, respuesta incompleta y manual insuficiente no se reintentan automáticamente. Cancelar la espera no garantiza que OpenAI no haya procesado o facturado la petición anterior.
+
+## Representación y vídeo
+
+La geometría usa cajas y cilindros. Las medidas y posiciones inferidas se marcan como aproximadas. El manual sigue siendo la referencia para herrajes, cargas, taladros, uniones y anclajes. El número de página y el orden interpretados también pueden contener errores.
+
+El vídeo graba la animación 3D con sus pasos escritos, sin audio. Se genera en tiempo real con MediaRecorder, en WebM o MP4 según el navegador. La preparación se pausa si se oculta la pestaña y continúa al volver. Si el navegador no permite grabarlo, la animación y los pasos siguen disponibles. Con movimiento reducido, la reproducción visible empieza pausada.
+
+El modelo no genera código ejecutable ni recibe herramientas. Las instrucciones incluidas dentro del PDF se tratan como datos, no como órdenes.
+
+## Desarrollo
 
 Node.js 24 y pnpm 11.25.0:
 
@@ -42,27 +57,31 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Abre `http://localhost:3000`. No hace falta un archivo `.env`.
+Abrir `http://localhost:3000`. No hace falta `.env`.
 
 ```sh
 pnpm typecheck
 pnpm lint
+pnpm test
 NEXT_PUBLIC_BASE_PATH=/leroy-montaje-ia pnpm build
 ```
 
-El resultado estático está en `out/`. GitHub Actions compila y publica al actualizar `main`. GitHub Pages debe tener **GitHub Actions** como fuente. La variable `NEXT_PUBLIC_BASE_PATH` contiene solo el nombre público del repositorio, nunca una clave.
+GitHub Actions ejecuta las comprobaciones y publica `out/` al actualizar `main`. GitHub Pages utiliza **GitHub Actions** como fuente. `NEXT_PUBLIC_BASE_PATH` solo contiene la ruta pública del repositorio.
 
-## Código y procedencia
+## Código y fuentes
 
-- `src/app/prueba-leroy/`: interfaz y ejemplos originales ampliados.
-- `src/components/ManualStudio.tsx`: clave, archivos y guía generada.
-- `src/lib/ai/openai.ts`: única llamada de red de IA, límites y errores.
-- `src/lib/ai/guide.ts`: esquema, comprobaciones y conversión al plan 3D.
-- `src/lib/video.ts`: exportación de vídeo en el dispositivo.
+- `src/components/ManualStudio.tsx`: recorrido de PDF, conexión y estados.
+- `src/components/montage/`: carga, diálogo y reproductor con pasos.
+- `src/app/prueba-leroy/montage.css`: diseño adaptable.
+- `src/lib/ai/openai.ts`: peticiones y revisión limitada.
+- `src/lib/ai/guide.ts`: esquema, validación y conversión al plan 3D.
+- `src/lib/video.ts`: grabación y capítulos en el dispositivo.
+- `tests/guide.test.mjs`: regresiones de referencias y revisión.
 - `src/engine/`: motor 3D de Bygga.
-- `src/lib/leroy/` y `src/data/leroy-*.json`: ejemplos heredados y sus fuentes.
-- `docs/prueba-leroy/procedencia.json`: procedencia de los ejemplos originales.
+- `src/lib/leroy/`, `src/data/leroy-*.json` y `docs/prueba-leroy/procedencia.json`: ejemplos originales.
+- [Decisiones de UX y referencias](docs/diseno-ux.md).
+- [Comprobaciones y límites](docs/validacion.md).
 
-Documentación de integración consultada el 7 de noviembre de 2026: [archivos PDF](https://developers.openai.com/api/docs/guides/file-inputs), [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs), [GPT-5.4 mini](https://developers.openai.com/api/docs/models/gpt-5.4-mini), [exportación estática de Next.js](https://nextjs.org/docs/app/guides/static-exports) y [GitHub Pages con Actions](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+Documentación consultada el 7 de noviembre de 2026: [PDF](https://developers.openai.com/api/docs/guides/file-inputs), [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs), [estado de conversación](https://developers.openai.com/api/docs/guides/conversation-state), [GPT-5.4 mini](https://developers.openai.com/api/docs/models/gpt-5.4-mini), [exportación estática de Next.js](https://nextjs.org/docs/app/guides/static-exports) y [GitHub Pages con Actions](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 
 Proyecto experimental independiente, sin afiliación oficial con Leroy Merlin. La licencia MIT no concede derechos sobre marcas ni manuales de terceros.

@@ -24,6 +24,7 @@ export default function StageView({
   onUserView,
   paused,
   speed,
+  instant,
 }: {
   plan: Plan | null;
   mode: StageMode;
@@ -36,6 +37,7 @@ export default function StageView({
   onUserView?: (changed: boolean) => void;
   paused?: boolean;
   speed?: number;
+  instant?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const [error, setError] = useState("");
@@ -45,9 +47,9 @@ export default function StageView({
     cbs.current = { onIntroDone, onHover, onUserView, onReady };
   });
   const modeKey = JSON.stringify(mode);
-  const latest = useRef({ plan, mode, highlight, paused, speed });
+  const latest = useRef({ plan, mode, highlight, paused, speed, instant });
   useEffect(() => {
-    latest.current = { plan, mode, highlight, paused, speed };
+    latest.current = { plan, mode, highlight, paused, speed, instant };
   });
 
   useEffect(() => {
@@ -65,7 +67,7 @@ export default function StageView({
       const { plan: p, mode: m, highlight: h } = latest.current;
       if (p) {
         s.setPlan(p);
-        s.setMode(m);
+        s.setMode(m, { instant: latest.current.instant });
       }
       s.setHighlight(h ?? null);
       s.setPaused(!!latest.current.paused);
@@ -94,14 +96,14 @@ export default function StageView({
     if (!s || !plan) return;
     const fresh = s.plan !== plan;
     s.setPlan(plan);
-    if (fresh) s.setMode(latest.current.mode);
+    if (fresh) s.setMode(latest.current.mode, { instant: latest.current.instant });
   }, [plan]);
 
   useEffect(() => {
     const s = stage.current;
     if (!s || !s.plan) return;
-    s.setMode(latest.current.mode);
-  }, [modeKey]);
+    s.setMode(latest.current.mode, { instant: latest.current.instant });
+  }, [modeKey, instant]);
 
   useEffect(() => {
     stage.current?.setHighlight(highlight ?? null);

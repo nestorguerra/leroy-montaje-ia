@@ -47,37 +47,49 @@ export const guideSchema = z.object({
 export type AssemblyGuide = z.infer<typeof guideSchema>;
 const vec = (v: z.infer<typeof vector>): Vec3 => [v.x, v.y, v.z];
 
+export class GuideValidationError extends Error {
+  constructor(message: string) { super(message); this.name = "GuideValidationError"; }
+}
+
 export function parseGuide(value: unknown): AssemblyGuide {
   const result = guideSchema.safeParse(value);
-  if (!result.success) throw new Error("La respuesta no tiene un formato de montaje válido. Pruebe con un manual más claro.");
+  if (!result.success) throw new GuideValidationError(`La respuesta tiene campos de montaje inválidos: ${result.error.issues.slice(0, 5).map(issue => issue.path.join(".")).join(", ")}.`);
   const guide = result.data;
   if (guide.status !== "ready") return guide;
   if (!guide.name.trim() || !guide.parts.length || !guide.steps.length || vec(guide.dimensionsMm).some(n => n <= 0)) {
-    throw new Error("No hay suficientes piezas o pasos para construir una guía. Revise el manual.");
+    throw new GuideValidationError("La guía necesita un nombre, piezas, pasos y dimensiones positivas.");
   }
   const ids = new Set<string>();
   const last = new Map<string, AssemblyGuide["steps"][number]["motions"][number]>();
   const pageValid = (n: number | null) => n === null || n <= guide.pageCount;
   for (const part of guide.parts) {
-    if (ids.has(part.id) || vec(part.sizeMm).some(n => n <= 0) || !pageValid(part.sourcePage)) throw new Error("El inventario generado contiene medidas, páginas o identificadores incoherentes.");
-    if (part.shape === "cyl" && Math.abs(part.sizeMm.x - part.sizeMm.z) > 0.1) throw new Error("Un cilindro generado tiene dos diámetros diferentes. Vuelva a generar la guía.");
+    if (ids.has(part.id)) throw new GuideValidationError(`El inventario repite el identificador de pieza "${part.id}". Cada pieza física necesita un id único.`);
+    if (vec(part.sizeMm).some(n => n <= 0) || !pageValid(part.sourcePage)) throw new GuideValidationError(`La pieza "${part.id}" tiene medidas no positivas o una página fuera del manual.`);
+    if (part.shape === "cyl" && Math.abs(part.sizeMm.x - part.sizeMm.z) > 0.1) throw new GuideValidationError(`El cilindro "${part.id}" debe tener el mismo diámetro en sizeMm.x y sizeMm.z.`);
     ids.add(part.id);
   }
-  for (const step of guide.steps) {
-    if (!step.title.trim() || !pageValid(step.sourcePage)) throw new Error("Hay un paso sin título o con una página fuera del manual.");
-    const seen = new Set<string>();
+  for (const [index, step] of guide.steps.entries()) {
+    if (!step.title.trim() || !pageValid(step.sourcePage)) throw new GuideValidationError(`El paso ${index + 1} necesita un título y una página dentro del manual.`);
+    const seen = new Map<string, typeof step.motions[number]>();
     for (const motion of step.motions) {
-      if (!ids.has(motion.partId) || seen.has(motion.partId)) throw new Error("Un paso menciona una pieza inexistente o repetida. Vuelva a generar la guía.");
-      seen.add(motion.partId);
+      if (!ids.has(motion.partId) && ids.has(motion.partId.trim())) motion.partId = motion.partId.trim();
+      if (!ids.has(motion.partId)) throw new GuideValidationError(`El paso ${index + 1} referencia "${motion.partId}", que no existe en parts. Usa exactamente los ids del inventario: ${[...ids].join(", ")}.`);
+      const previous = seen.get(motion.partId);
+      if (previous) {
+        if (JSON.stringify(previous) === JSON.stringify(motion)) continue;
+        throw new GuideValidationError(`El paso ${index + 1} mueve "${motion.partId}" dos veces con poses diferentes. Cada pieza aparece una sola vez por paso; conserva las acciones del manual en pasos separados si son distintas.`);
+      }
+      seen.set(motion.partId, motion);
       last.set(motion.partId, motion);
     }
+    step.motions = [...seen.values()];
   }
   for (const part of guide.parts) {
     const motion = last.get(part.id);
-    if (!motion) throw new Error("Hay piezas sin ningún paso de montaje. Vuelva a generar la guía.");
+    if (!motion) throw new GuideValidationError(`La pieza "${part.id}" no aparece en ningún paso. Conserva todas las piezas y representa su montaje.`);
     const final = [...vec(part.positionMm), ...vec(part.rotationRad)];
     const end = [...vec(motion.positionMm), ...vec(motion.rotationRad)];
-    if (final.some((n, i) => Math.abs(n - end[i]) > 0.1)) throw new Error("La posición final de una pieza no coincide con sus pasos. Vuelva a generar la guía.");
+    if (final.some((n, i) => Math.abs(n - end[i]) > 0.1)) throw new GuideValidationError(`La última pose de "${part.id}" no coincide con su positionMm y rotationRad en parts. El último motion y la pose final deben ser iguales.`);
   }
   return guide;
 }

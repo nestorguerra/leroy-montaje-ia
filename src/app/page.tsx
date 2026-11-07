@@ -1,2 +1,3 @@
-import Prototype from "./prueba-leroy/Prototype";
-export default function Page() { return <Prototype />; }
+import ManualStudio from "@/components/ManualStudio";
+import "./prueba-leroy/montage.css";
+export default function Page() { return <ManualStudio/>; }

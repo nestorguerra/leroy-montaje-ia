@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Del manual al montaje | Leroy Montaje IA",
-  description: "Convierte un manual en una guía animada de montaje con OpenAI. Adaptación independiente de Bygga.",
+  title: "Montaje. Tu manual, en movimiento.",
+  description: "Arrastra el PDF de tu manual y descubre el montaje en una animación con todos los pasos. Con OpenAI y el motor 3D de Bygga.",
   robots: { index: false, follow: false },
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
