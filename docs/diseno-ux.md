@@ -16,7 +16,11 @@ La conexión se pide al necesitarla. El diálogo conserva el PDF pendiente y exp
 
 La lectura muestra una espera indeterminada con el nombre del PDF y opción de cancelar. No se inventan porcentajes de interpretación. Una revisión de referencias cambia el estado visible a ajuste de piezas y movimientos.
 
-El resultado prioriza la película. La animación permite empezar inmediatamente; la grabación se prepara sola. Los pasos cambian el momento del reproductor y el vídeo actualiza el paso activo. En móvil, el reproductor aparece antes que los pasos.
+El resultado recupera las tres vistas del prototipo original, `ProductPreview`: Producto, Piezas y Montaje. Conserva un único lienzo 3D interactivo. En Producto se ve el resultado final y sus medidas. En Piezas se busca por código o nombre y se aísla una unidad. En Montaje se reproduce, pausa, repite, cambia de paso o recorre su animación con una barra. La velocidad puede reducirse a la mitad.
+
+El giro y el zoom funcionan durante la reproducción y la pausa. El menú Vistas ofrece cuatro ángulos y el encuadre se puede recuperar. Cambiar de paso conserva el giro elegido. Un paso abierto en pausa muestra su pose final para que el visor no quede vacío; reproducirlo empieza por el movimiento de ese paso. Solo terminar de reproducir toda la guía ofrece reiniciarla desde el principio.
+
+No se prepara un vídeo plano ni se reemplaza el modelo. En escritorio, el contexto aparece a la derecha; en móvil, debajo. El paso actual está separado de la lista compacta de navegación. La lista mantiene visible el paso activo con desplazamiento propio, sin mover la página. Los controles tienen objetivos táctiles de al menos 44 px.
 
 El manual original y las simplificaciones están accesibles junto a la guía. El siguiente manual se puede arrastrar sobre la página o elegir al final. No se añaden galerías, cuentas ni historial.
 

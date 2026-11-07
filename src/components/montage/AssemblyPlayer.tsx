@@ -1,114 +1,109 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Download, Pause, Play } from "lucide-react";
+import { useEffect, useRef, useState, type KeyboardEvent, type CSSProperties } from "react";
+import { ChevronLeft, ChevronRight, Pause, Play, RotateCcw } from "lucide-react";
 import StageView, { type StageHandle } from "../StageView";
-import { exportVideo, secondsForStep, type Caption } from "@/lib/video";
+import { secondsForStep, type Caption } from "@/lib/video";
 import type { Plan } from "@/lib/types";
+import type { StageMode } from "@/engine/stage";
+import CameraTools from "./CameraTools";
 
-export default function AssemblyPlayer({ plan, captions, step, onStep, reduceMotion }: {
+export type GuideView = "product" | "parts" | "assembly";
+
+export default function AssemblyPlayer({ plan, captions, step, onStep, view, part, playing, onPlaying, reduceMotion }: {
   plan: Plan;
   captions: Caption[];
   step: number;
   onStep: (step: number) => void;
+  view: GuideView;
+  part: string | null;
+  playing: boolean;
+  onPlaying: (playing: boolean) => void;
   reduceMotion: boolean;
 }) {
-  const [playing, setPlaying] = useState(!reduceMotion);
-  const [progress, setProgress] = useState(0);
-  const [asset, setAsset] = useState<{ url: string; extension: string } | null>(null);
-  const [exportError, setExportError] = useState("");
-  const [ready, setReady] = useState(false);
-  const video = useRef<HTMLVideoElement | null>(null);
   const handle = useRef<StageHandle | null>(null);
-  const chapters = useRef<number[]>([]);
-  const liveElapsed = useRef(0);
-  const previousStep = useRef(step);
-  const currentStep = useRef(step);
-  const playback = useRef(playing);
-  const pendingSeek = useRef(false);
-  useEffect(() => { currentStep.current = step; playback.current = playing; }, [step, playing]);
+  const [complete, setComplete] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const [duration, setDuration] = useState(secondsForStep(captions[step]));
+  const [slow, setSlow] = useState(false);
+  const [freeView, setFreeView] = useState(false);
+  const mode: StageMode = view === "product" ? { kind: "assembled", dims: true }
+    : view === "parts" ? part ? { kind: "part", ref: part } : { kind: "layout" }
+      : { kind: "step", index: step };
 
   useEffect(() => {
-    const abort = new AbortController();
-    let url = "";
-    exportVideo(plan, captions, { signal: abort.signal, onProgress: setProgress, onChapters: seconds => { chapters.current = seconds; } }).then(blob => {
-      if (abort.signal.aborted) return;
-      url = URL.createObjectURL(blob);
-      setAsset({ url, extension: blob.type.includes("mp4") ? "mp4" : "webm" });
-    }).catch(e => {
-      if (!abort.signal.aborted) setExportError(e instanceof Error ? e.message : "El vídeo no está disponible en este navegador.");
-    });
-    return () => { abort.abort(); if (url) URL.revokeObjectURL(url); };
-  }, [plan, captions]);
-
-  useEffect(() => {
-    if (previousStep.current === step) return;
-    previousStep.current = step;
-    liveElapsed.current = 0;
-    if (asset && video.current && Math.abs(indexAt(video.current.currentTime, chapters.current) - step) > 0) {
-      pendingSeek.current = true;
-      video.current.currentTime = chapters.current[step] || 0;
-    }
-  }, [step, asset]);
-
-  useEffect(() => {
-    if (asset || !ready || !playing) return;
-    const duration = Math.max(secondsForStep(captions[step]), handle.current?.getStepSeconds() || 6);
-    let last = performance.now();
+    if (!ready || view !== "assembly") return;
     const interval = setInterval(() => {
-      const now = performance.now();
-      if (!document.hidden) liveElapsed.current += Math.min((now - last) / 1000, 0.25);
-      last = now;
-      if (liveElapsed.current >= duration) {
-        liveElapsed.current = 0;
+      const stage = handle.current;
+      if (!stage) return;
+      const length = Math.max(secondsForStep(captions[step]), stage.getStepSeconds());
+      const time = Math.min(length, Math.max(0, stage.getTime()));
+      setDuration(length);
+      setElapsed(time);
+      if (playing && time >= length) {
+        stage.setPaused(true);
         if (step < captions.length - 1) onStep(step + 1);
-        else setPlaying(false);
+        else { setComplete(true); onPlaying(false); }
       }
     }, 100);
     return () => clearInterval(interval);
-  }, [asset, ready, playing, captions, step, onStep]);
-
-  useEffect(() => {
-    if (!asset || !video.current) return;
-    if (playing) void video.current.play().catch(() => setPlaying(false));
-    else video.current.pause();
-  }, [playing, asset]);
+  }, [ready, view, playing, captions, step, onStep, onPlaying]);
 
   function toggle() {
-    if (!asset && !playing && step === captions.length - 1 && liveElapsed.current === 0) onStep(0);
-    if (reduceMotion && !playing) liveElapsed.current = 0;
-    setPlaying(p => !p);
+    if (!playing && (handle.current?.getTime() ?? 0) >= duration) {
+      if (complete && step === captions.length - 1) { setComplete(false); onStep(0); }
+      else handle.current?.seek(0);
+    }
+    onPlaying(!playing);
   }
-  function onVideoReady() {
-    const element = video.current;
-    if (!element) return;
-    const index = currentStep.current;
-    const chapter = chapters.current[index] || 0;
-    const chapterEnd = chapters.current[index + 1] ?? (Number.isFinite(element.duration) ? element.duration : chapter + secondsForStep(captions[index]));
-    const start = reduceMotion && !playback.current ? Math.max(chapter, chapterEnd - 0.25) : chapter + liveElapsed.current;
-    element.currentTime = Number.isFinite(element.duration) ? Math.min(start, Math.max(0, element.duration - 0.25)) : start;
-    if (playback.current) void element.play().catch(() => setPlaying(false));
+  function replay() {
+    setComplete(false);
+    handle.current?.seek(0);
+    setElapsed(0);
+    onPlaying(true);
   }
-  function syncStep(element: HTMLVideoElement) {
-    if (pendingSeek.current || element.seeking) return;
-    const index = indexAt(element.currentTime, chapters.current);
-    if (index !== currentStep.current) onStep(index);
+  function seek(value: number) {
+    setComplete(false);
+    onPlaying(false);
+    handle.current?.setPaused(true);
+    handle.current?.seek(value);
+    setElapsed(value);
   }
+  function keyboard(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.target !== event.currentTarget) return;
+    const turns: Record<string, [number, number]> = { ArrowLeft: [-0.18, 0], ArrowRight: [0.18, 0], ArrowUp: [0, 0.12], ArrowDown: [0, -0.12] };
+    if (turns[event.key]) { event.preventDefault(); handle.current?.rotateView(...turns[event.key]); }
+    else if (["+", "=", "-"].includes(event.key)) { event.preventDefault(); handle.current?.zoomView(event.key === "-" ? 1.15 : 1 / 1.15); }
+    else if (event.key === "0") { event.preventDefault(); handle.current?.resetView(); }
+    else if (event.code === "Space" && view === "assembly") { event.preventDefault(); toggle(); }
+  }
+
   return <div className="assembly-player">
-    <div className="assembly-screen" aria-label="Vídeo del montaje">
-      {asset ? <video ref={video} src={asset.url} controls playsInline muted preload="auto" onLoadedMetadata={onVideoReady} onTimeUpdate={e => syncStep(e.currentTarget)} onSeeked={e => { pendingSeek.current = false; syncStep(e.currentTarget); }} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)} aria-label={`Vídeo de montaje de ${plan.spec.name}`}/> : <>
-        <StageView plan={plan} mode={{ kind: "step", index: step }} options={{ labels: true, interactive: false, loop: false }} paused={!playing} instant={reduceMotion && !playing} onReady={h => { handle.current = h; setReady(true); }}/>
-        <div className="live-player-top"><span>ANIMACIÓN DE MONTAJE</span><span>{step + 1} / {captions.length}</span></div>
-        <div className="live-player-bottom"><button className="player-play" aria-label={playing ? "Pausar animación" : "Reproducir animación"} onClick={toggle}>{playing ? <Pause size={18} fill="currentColor"/> : <Play size={18} fill="currentColor"/>}</button><span>{captions[step].title}</span><div className="live-step-track" aria-hidden="true">{captions.map((_, i) => <i key={i} className={i <= step ? "is-played" : ""}/>)}</div></div>
-      </>}
+    <div className="assembly-screen" role="group" tabIndex={0} aria-label={`Modelo 3D de ${plan.spec.name}`} aria-describedby="viewer-help" onKeyDown={keyboard}>
+      <StageView plan={plan} mode={mode} options={{ labels: true, callout: true, interactive: true, preserveView: true, loop: false }} paused={view !== "assembly" || !playing} speed={slow ? 0.5 : 1} instant={reduceMotion} onUserView={setFreeView} onReady={h => { handle.current = h; setReady(true); }} onModeReady={h => {
+        setComplete(false);
+        if (view === "assembly" && !playing) h.seek(Math.max(secondsForStep(captions[step]), h.getStepSeconds()));
+        else if (view === "assembly" && reduceMotion) h.seek(0);
+      }}/>
+      <div className="viewer-badge"><span className="viewer-live-dot"/>3D INTERACTIVO</div>
+      <span className="viewer-mode-caption">{view === "product" ? "El resultado final" : view === "parts" ? part ? "Una pieza, todos sus ángulos" : "Cada pieza en su sitio" : `Paso ${step + 1} de ${captions.length}`}</span>
+      {!ready && <span className="viewer-loading" role="status">Abriendo el modelo 3D…</span>}
     </div>
-    <div className="player-caption"><span role="status">{asset ? "Vídeo listo. A tu ritmo." : exportError ? "Puedes seguir la animación y los pasos." : `Preparando el vídeo · ${progress}%`}</span>{asset && <a href={asset.url} download={`montaje.${asset.extension}`}><Download size={14}/>Guardar vídeo</a>}</div>
-    {exportError && <p className="player-export-note">La descarga de vídeo no está disponible. {exportError}</p>}
+    <CameraTools handle={handle} freeView={freeView}/>
+    {view === "assembly" && <div className="assembly-transport" role="group" aria-label="Reproducción del montaje">
+      <div className="transport-top"><span>{complete ? "Montaje completado" : `Paso ${step + 1} de ${captions.length}`}</span><span>{clock(elapsed)} / {clock(duration)}</span></div>
+      <input className="assembly-scrubber" type="range" min="0" max={duration} step="0.05" value={Math.min(elapsed, duration)} aria-label="Avance de este paso" aria-valuetext={`${clock(elapsed)} de ${clock(duration)}`} style={{ "--progress": `${100 * elapsed / duration}%` } as CSSProperties} onChange={e => seek(Number(e.target.value))} disabled={!ready}/>
+      <div className="transport-buttons">
+        <button className="viewer-icon-button" aria-label="Paso anterior" disabled={step === 0 || !ready} onClick={() => onStep(step - 1)}><ChevronLeft size={21}/></button>
+        <button className="player-play" aria-label={playing ? "Pausar montaje" : complete ? "Reproducir desde el principio" : "Reproducir montaje"} disabled={!ready} onClick={toggle}>{playing ? <Pause size={19} fill="currentColor"/> : <Play size={19} fill="currentColor"/>}</button>
+        <button className="viewer-icon-button" aria-label="Paso siguiente" disabled={step === captions.length - 1 || !ready} onClick={() => onStep(step + 1)}><ChevronRight size={21}/></button>
+        <button className="viewer-icon-button replay-step" aria-label="Repetir este paso" disabled={!ready} onClick={replay}><RotateCcw size={17}/><span>Repetir</span></button>
+        <button className="viewer-speed" aria-label={slow ? "Restablecer velocidad normal" : "Reproducir a media velocidad"} aria-pressed={slow} onClick={() => setSlow(!slow)}>{slow ? "0,5×" : "1×"}</button>
+      </div>
+      <p className="transport-hint">Puedes girar el modelo mientras se monta.</p>
+    </div>}
   </div>;
 }
 
-function indexAt(time: number, chapters: number[]) {
-  let step = 0;
-  for (let i = 0; i < chapters.length; i++) { if (time + 0.05 >= chapters[i]) step = i; else break; }
-  return step;
-}
+const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;

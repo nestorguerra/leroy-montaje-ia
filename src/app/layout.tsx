@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Montaje. Tu manual, en movimiento.",
-  description: "Arrastra el PDF de tu manual y descubre el montaje en una animación con todos los pasos. Con OpenAI y el motor 3D de Bygga.",
+  description: "Arrastra el PDF de tu manual. Explora el producto y sus piezas en 3D, gira el modelo y sigue el montaje paso a paso. Con OpenAI y el motor 3D de Bygga.",
   robots: { index: false, follow: false },
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };

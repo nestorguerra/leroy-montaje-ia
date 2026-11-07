@@ -10,6 +10,11 @@ export interface StageHandle {
   setSpeed(s: number): void;
   setPaused(p: boolean): void;
   getStepSeconds(): number;
+  getTime(): number;
+  seek(seconds: number): void;
+  rotateView(az: number, el: number): void;
+  zoomView(factor: number): void;
+  cameraView(view: "perspective" | "front" | "side" | "top"): void;
 }
 
 export default function StageView({
@@ -19,6 +24,7 @@ export default function StageView({
   options,
   className,
   onReady,
+  onModeReady,
   onIntroDone,
   onHover,
   onUserView,
@@ -32,6 +38,7 @@ export default function StageView({
   options?: Omit<StageOptions, "onIntroDone" | "onHover" | "onUserView">;
   className?: string;
   onReady?: (h: StageHandle) => void;
+  onModeReady?: (h: StageHandle) => void;
   onIntroDone?: () => void;
   onHover?: (ref: string | null) => void;
   onUserView?: (changed: boolean) => void;
@@ -42,9 +49,10 @@ export default function StageView({
   const host = useRef<HTMLDivElement>(null);
   const [error, setError] = useState("");
   const stage = useRef<Stage | null>(null);
-  const cbs = useRef({ onIntroDone, onHover, onUserView, onReady });
+  const api = useRef<StageHandle | null>(null);
+  const cbs = useRef({ onIntroDone, onHover, onUserView, onReady, onModeReady });
   useEffect(() => {
-    cbs.current = { onIntroDone, onHover, onUserView, onReady };
+    cbs.current = { onIntroDone, onHover, onUserView, onReady, onModeReady };
   });
   const modeKey = JSON.stringify(mode);
   const latest = useRef({ plan, mode, highlight, paused, speed, instant });
@@ -72,13 +80,20 @@ export default function StageView({
       s.setHighlight(h ?? null);
       s.setPaused(!!latest.current.paused);
       s.setSpeed(latest.current.speed ?? 1);
-      cbs.current.onReady?.({
+      api.current = {
         replay: () => s?.replay(),
         resetView: () => s?.resetView(),
         setSpeed: (v) => s?.setSpeed(v),
         setPaused: (v) => s?.setPaused(v),
         getStepSeconds: () => (s?.stepEnd ?? 3) + 3,
-      });
+        getTime: () => s?.t ?? 0,
+        seek: (seconds) => s?.seek(seconds),
+        rotateView: (az, el) => s?.rotateView(az, el),
+        zoomView: (factor) => s?.zoomView(factor),
+        cameraView: (view) => s?.cameraView(view),
+      };
+      cbs.current.onReady?.(api.current);
+      cbs.current.onModeReady?.(api.current);
     }).catch(() => {
       if (alive) setError("No se ha podido abrir el modelo 3D. Compruebe que WebGL está disponible o pruebe en otro navegador. Los pasos escritos siguen disponibles.");
     });
@@ -86,6 +101,7 @@ export default function StageView({
       alive = false;
       s?.dispose();
       stage.current = null;
+      api.current = null;
     };
     // options are read once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -96,13 +112,18 @@ export default function StageView({
     if (!s || !plan) return;
     const fresh = s.plan !== plan;
     s.setPlan(plan);
-    if (fresh) s.setMode(latest.current.mode, { instant: latest.current.instant });
+    if (fresh) {
+      s.setMode(latest.current.mode, { instant: latest.current.instant });
+      if (api.current) cbs.current.onModeReady?.(api.current);
+    }
   }, [plan]);
 
   useEffect(() => {
     const s = stage.current;
     if (!s || !s.plan) return;
     s.setMode(latest.current.mode, { instant: latest.current.instant });
+    s.setPaused(!!latest.current.paused);
+    if (api.current) cbs.current.onModeReady?.(api.current);
   }, [modeKey, instant]);
 
   useEffect(() => {

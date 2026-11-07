@@ -8,11 +8,15 @@ Copia independiente de la prueba Leroy Merlin, basada en el motor 3D de [Bygga](
 
 1. Arrastra el PDF completo del manual, hasta 20 MB, o toca la zona para elegirlo.
 2. Si hace falta, introduce tu API Key de OpenAI. Solo se pide una vez por sesión.
-3. La guía aparece automáticamente: animación a la izquierda y pasos a la derecha. En móvil, los pasos quedan debajo.
+3. La guía aparece automáticamente con tres vistas: **Producto**, **Piezas** y **Montaje**. En móvil, la información queda debajo del modelo.
 
-Elegir un paso cambia la animación. El vídeo se prepara en el dispositivo mientras la guía ya está disponible. Después se puede reproducir, recorrer o guardar con los controles del reproductor. Para empezar otra guía, basta con arrastrar otro PDF.
+Arrastra el modelo para girarlo, usa la rueda o pellizca para acercarte. En **Producto** ves el resultado final. En **Piezas** puedes buscar por nombre o código y aislar una unidad. Las piezas idénticas se agrupan sin perder sus cantidades. En **Montaje** puedes reproducir la secuencia, pausar, avanzar dentro de cada paso, saltar al anterior o siguiente, repetir y reducir la velocidad. Puedes seguir girando y ampliando el modelo mientras se reproduce.
 
-No hay selectores de productos, modelos, inventario ni un botón adicional de generación. La mesa DAY aparece como ejemplo visual en la portada. Los datos originales de DAY y SPACEO NEO se conservan en el código.
+El menú **Vistas** ofrece perspectiva, frente, lado y vista superior. **Centrar vista** recupera el encuadre inicial. Con el visor enfocado, las flechas giran, más y menos cambian el zoom, cero centra y espacio reproduce o pausa. Las pestañas admiten flechas, Inicio y Fin. La lista de pasos mantiene visible el paso actual sin desplazar toda la página.
+
+Al elegir un paso en pausa, ves cómo queda. Al reproducirlo, ves cómo se realiza. Elegir el último paso no reinicia la guía; terminar la reproducción completa sí permite volver al principio.
+
+Para empezar otra guía, basta con arrastrar otro PDF. No hay selectores de productos o modelos ni un botón adicional de generación. La mesa DAY aparece como ejemplo visual en la portada. Los datos originales de DAY y SPACEO NEO se conservan en el código.
 
 ## Clave y archivos
 
@@ -24,7 +28,7 @@ Soltar o elegir un PDF inicia la petición si ya hay una clave. En caso contrari
 
 Una clave usada en el navegador puede ser leída por el propio navegador, sus extensiones y quien controle el dispositivo. Este prototipo usa una clave personal por sesión. Un servicio con una clave compartida requiere un servidor con autenticación y control de gasto. Véase la [biblioteca JavaScript de OpenAI](https://developers.openai.com/api/reference/typescript).
 
-El manual original solo tiene una URL local temporal en la pestaña. No se publica en GitHub. El vídeo no contiene la clave ni el PDF original.
+El manual original solo tiene una URL local temporal en la pestaña. No se publica en GitHub.
 
 ## Comprobación y revisión de la respuesta
 
@@ -44,11 +48,11 @@ La revisión puede consumir una segunda llamada de API. Se informa de ello antes
 
 Los errores de red, clave, saldo, rechazo, respuesta incompleta y manual insuficiente no se reintentan automáticamente. Cancelar la espera no garantiza que OpenAI no haya procesado o facturado la petición anterior.
 
-## Representación y vídeo
+## Representación interactiva
 
 La geometría usa cajas y cilindros. Las medidas y posiciones inferidas se marcan como aproximadas. El manual sigue siendo la referencia para herrajes, cargas, taladros, uniones y anclajes. El número de página y el orden interpretados también pueden contener errores.
 
-El vídeo graba la animación 3D con sus pasos escritos, sin audio. Se genera en tiempo real con MediaRecorder, en WebM o MP4 según el navegador. La preparación se pausa si se oculta la pestaña y continúa al volver. Si el navegador no permite grabarlo, la animación y los pasos siguen disponibles. Con movimiento reducido, la reproducción visible empieza pausada.
+La guía conserva el mismo lienzo 3D durante toda la sesión. No graba ni sustituye automáticamente la escena por un vídeo plano. La orientación elegida se mantiene al avanzar de paso. La reproducción usa el reloj del motor 3D para sincronizar los controles y los movimientos, también a media velocidad. Con movimiento reducido, el montaje empieza pausado y las vistas de producto y piezas aparecen sin transiciones.
 
 El modelo no genera código ejecutable ni recibe herramientas. Las instrucciones incluidas dentro del PDF se tratan como datos, no como órdenes.
 
@@ -75,14 +79,15 @@ GitHub Actions ejecuta las comprobaciones y publica `out/` al actualizar `main`.
 ## Código y fuentes
 
 - `src/components/ManualStudio.tsx`: recorrido de PDF, conexión y estados.
-- `src/components/montage/`: carga, diálogo y reproductor con pasos.
+- `src/components/montage/`: carga, diálogo, vistas, inventario y reproducción interactiva.
 - `src/app/prueba-leroy/montage.css`: diseño adaptable.
 - `src/lib/ai/openai.ts`: peticiones y revisión limitada.
 - `src/lib/ai/blueprint.ts`: formato de generación y compilador de movimientos por pieza.
 - `src/lib/ai/response.ts`: lectura de eventos SSE y cancelación.
 - `src/lib/ai/guide.ts`: formato interno, validación y conversión al plan 3D.
-- `src/lib/video.ts`: grabación y capítulos en el dispositivo.
-- `tests/guide.test.mjs`: regresiones de referencias y revisión.
+- `src/lib/assembly-inventory.ts`: agrupación de piezas conservando las cantidades y referencias.
+- `src/lib/video.ts`: utilidades de duración y grabación conservada fuera del recorrido principal.
+- `tests/guide.test.mjs`: regresiones de referencias, revisión e inventario.
 - `src/engine/`: motor 3D de Bygga.
 - `src/lib/leroy/`, `src/data/leroy-*.json` y `docs/prueba-leroy/procedencia.json`: ejemplos originales.
 - [Decisiones de UX y referencias](docs/diseno-ux.md).

@@ -1,11 +1,11 @@
-# Comprobaciones de la generación con GPT-6.1 Sol
+# Comprobaciones de generación y visor interactivo
 
 Fecha: 7 de noviembre de 2026.
 
 ## Verificado en local
 
 - TypeScript, ESLint sin avisos y compilación estática de Next.js 16.4.2: correctos.
-- Dieciocho pruebas de regresión en `pnpm test`.
+- Veinte pruebas de regresión en `pnpm test`, incluidas cantidades y referencias del inventario interactivo.
 - La petición usa `gpt-6.1-sol`, `reasoning.effort: "xhigh"`, 64.000 tokens máximos de salida, `stream: true`, `store: false` y esquema estricto. No incluye parámetros de muestreo ni cambia a un modelo alternativo.
 - Cada pieza contiene sus movimientos. El compilador asigna ids únicos, construye las referencias y deriva la pose final del último movimiento. Se comprueba el desplazamiento conjunto de 80 piezas con el mismo código impreso.
 - Un cilindro tiene un solo diámetro. Se rechazan páginas fuera del manual, índices de paso inexistentes, medidas inválidas y poses contradictorias de una pieza en un mismo paso. Una repetición idéntica se deduplica.
@@ -15,7 +15,7 @@ Fecha: 7 de noviembre de 2026.
 - Un error semántico admite una sola revisión con el manual original y el error preciso. Dos respuestas inválidas detienen la generación sin una tercera petición.
 - Espera máxima de 15 minutos, con cancelación accesible durante la generación.
 
-## Navegador
+## Pruebas anteriores del flujo PDF
 
 Chrome real, automatizado con Playwright y respuestas de OpenAI simuladas:
 
@@ -28,6 +28,22 @@ Chrome real, automatizado con Playwright y respuestas de OpenAI simuladas:
 - Clave ficticia solo en memoria; desconexión y recarga la borran. Sin cookies ni almacenamiento persistente.
 - Movimiento reducido: animación visible inicialmente pausada con las piezas mostradas.
 - Sin excepciones JavaScript ni errores inesperados de consola.
+
+Estas comprobaciones de grabación corresponden a la versión anterior. El visor actual conserva el 3D y no genera vídeo automáticamente.
+
+## Visor interactivo actual
+
+Comprobación en el navegador integrado WebKit con una compilación estática local y datos sintéticos privados, sin nuevas llamadas de OpenAI:
+
+- Producto, Piezas y Montaje comparten un solo lienzo principal. El resultado no contiene un elemento de vídeo.
+- Búsqueda por nombre y código, estado sin resultados, vista de todas las piezas y aislamiento de una unidad. Las cantidades permanecen completas al agrupar piezas idénticas.
+- Giro con arrastre durante la reproducción, giro con teclado en pausa, zoom y selección de vista frontal. La pausa conserva exactamente el tiempo del motor mientras se gira el modelo.
+- Reproducción automática hasta el segundo paso y final del montaje. Repetición, media velocidad y avance con la barra. El montaje con movimiento reducido empieza pausado y muestra las piezas del paso.
+- Guía de 34 pasos: salto al último, paso activo visible dentro de su lista y reproducción del paso 34 sin reiniciar en el primero. Pestañas navegables con flechas.
+- Visor a 320, 768, 1024 y 1440 px, sin desbordamiento horizontal. Controles de reproducción de al menos 44 por 44 px. Revisión visible en móvil y tableta.
+- Sin errores de consola durante estas operaciones. La ruta y las respuestas sintéticas de comprobación se retiran antes de la compilación de publicación.
+
+No se ha repetido la interpretación del PDF real para comprobar los nuevos controles. El generador y su modelo no cambian en esta revisión. La generación real descrita a continuación pertenece a la versión anterior del reproductor.
 
 ## PDF aportado para reproducir el fallo
 
@@ -49,6 +65,6 @@ El vídeo y las capturas de este manual quedan como archivos privados para el us
 
 No se dispone del JSON original que produjo la captura. El nuevo formato elimina por construcción las referencias a piezas inexistentes y la duplicación de poses finales, pero no acredita qué condición concreta falló en aquella respuesta.
 
-La prueba real confirma la generación y reproducción de esta guía. No acredita cada medida, posición o fijación: la geometría es aproximada y el manual conserva la autoridad sobre el montaje.
+La prueba real confirma la generación y reproducción de esta guía en la versión anterior. La prueba del nuevo visor acredita sus controles con datos sintéticos. No acredita cada medida, posición o fijación: la geometría es aproximada y el manual conserva la autoridad sobre el montaje.
 
-No se ha realizado un montaje físico ni una validación profesional de herrajes. La prueba móvil usa viewports de navegador, no un teléfono físico. Los formatos y la calidad de vídeo dependen del navegador.
+No se ha realizado un montaje físico ni una validación profesional de herrajes. La prueba móvil usa viewports de navegador, no un teléfono físico ni gestos multitáctiles reales.

@@ -17,6 +17,7 @@ export type StageMode =
 export interface StageOptions {
   callout?: boolean;
   interactive?: boolean;
+  preserveView?: boolean;
   labels?: boolean;
   offscreen?: boolean;
   loop?: boolean;
@@ -465,7 +466,7 @@ export class Stage {
       if (turn > 0.1) this.t = -Math.min(0.75, poseDur(turn) * 0.7);
     }
     this.loopCount = 0;
-    this.autoReset = true;
+    if (!this.opts.preserveView) this.autoReset = true;
     this.introDone = mode.kind !== "intro";
     if (!(prev.kind === "assembled" && mode.kind === "assembled" && prev.turntable && mode.turntable)) this.turnT = 0;
     if (prev.kind === "step" && mode.kind === "step" && this.plan) {
@@ -491,6 +492,37 @@ export class Stage {
   }
   setSpeed(s: number) {
     this.speed = s;
+  }
+
+  seek(seconds: number) {
+    this.t = Math.max(0, seconds);
+    this.carryT = 1;
+    this.tick(0);
+    this.render();
+  }
+
+  rotateView(az: number, el: number) {
+    this.autoReset = false;
+    this.userAz += az;
+    this.userEl = Math.max(0.05 - this.camEl, Math.min(1.45 - this.camEl, this.userEl + el));
+    this.opts.onUserView?.(true);
+  }
+
+  zoomView(factor: number) {
+    this.autoReset = false;
+    this.userZoom = Math.max(0.35, Math.min(2.5, this.userZoom * factor));
+    this.opts.onUserView?.(true);
+  }
+
+  cameraView(view: "perspective" | "front" | "side" | "top") {
+    const angles = { perspective: [0.62, 0.46], front: [0, 0.05], side: [Math.PI / 2, 0.05], top: [0, 1.45] }[view];
+    const base = this.camAngles();
+    this.autoReset = false;
+    this.camAz = base.az;
+    this.camEl = base.el;
+    this.userAz = angles[0] - base.az;
+    this.userEl = angles[1] - base.el;
+    this.opts.onUserView?.(true);
   }
 
   setHighlight(refs: string[] | null) {

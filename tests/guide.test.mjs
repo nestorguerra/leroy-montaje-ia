@@ -13,7 +13,8 @@ load.extensions[".ts"] = (module, filename) => {
   });
   module._compile(source.outputText, filename);
 };
-const { parseGuide, GuideValidationError } = load("../src/lib/ai/guide.ts");
+const { parseGuide, buildAIPlan, GuideValidationError } = load("../src/lib/ai/guide.ts");
+const { assemblyInventory } = load("../src/lib/assembly-inventory.ts");
 const { parseBlueprint, blueprintJSONSchema } = load("../src/lib/ai/blueprint.ts");
 const { generateGuide, MODELS } = load("../src/lib/ai/openai.ts");
 const { readOpenAIResponse } = load("../src/lib/ai/response.ts");
@@ -32,6 +33,29 @@ const blueprint = () => {
     geometry: { shape: part.shape, sizeMm: part.sizeMm }, placements: [{ stepNumber: index + 1, positionMm: part.positionMm, rotationRad: part.rotationRad, approachMm: vector(0, 100, 0) }],
   })) };
 };
+
+test("interactive inventory groups identical physical pieces without losing quantities or references", () => {
+  const guide = fixture();
+  guide.parts.forEach(part => { part.name = "Pata"; });
+  const plan = buildAIPlan(parseGuide(guide));
+  const inventory = assemblyInventory(guide, plan);
+  assert.equal(inventory.length, 1);
+  assert.equal(inventory[0].count, 2);
+  assert.equal(inventory[0].ref, plan.parts[0].id);
+  assert.equal(plan.items.filter(item => item.kind === "part").length, 2);
+});
+test("interactive inventory keeps different sizes or evidence separate even with the same printed code", () => {
+  const guide = fixture();
+  guide.parts.forEach(part => { part.name = "Pata"; });
+  guide.parts[1].sizeMm.y = 200;
+  let inventory = assemblyInventory(guide, buildAIPlan(parseGuide(guide)));
+  assert.equal(inventory.length, 2);
+  guide.parts[1].sizeMm.y = 100;
+  guide.parts[1].geometryEvidence = "documented";
+  inventory = assemblyInventory(guide, buildAIPlan(parseGuide(guide)));
+  assert.equal(inventory.length, 2);
+  assert.equal(inventory.reduce((total, item) => total + item.count, 0), 2);
+});
 
 test("blueprint assigns unique ids to repeated labels and derives final poses from placements", () => {
   const input = blueprint();
