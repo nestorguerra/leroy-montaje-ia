@@ -35,10 +35,20 @@ Se ha leído el manual real de 36 páginas, incluido el inventario y los diagram
 
 Para comprobar el tamaño del inventario se preparó a mano un escenario con 81 piezas visuales, conservando los códigos y cantidades de perfiles y paneles. Sus poses y etapas son sintéticas, están señaladas como prueba y no constituyen una guía de montaje. Este escenario se validó y dibujó en escritorio y móvil. El PDF, sus ilustraciones y ese escenario local no se incluyen en el repositorio ni en la aplicación pública.
 
+## Generación real con OpenAI
+
+El usuario introdujo su clave directamente en la aplicación. Se completó una generación real con GPT-6.1 Sol y razonamiento xhigh. La guía resultante tiene 34 pasos y se dibujó sin el error de referencias.
+
+Se recorrieron sus 34 enlaces de página: todos están entre las páginas físicas 20 y 33 y mantienen el orden del montaje. Se revisaron las instrucciones de la base, los laterales, los submontajes, la cubierta y ambas puertas. Se observó el cierre de las dos puertas en la animación final. El resultado se comprobó a 669 y 1440 px, sin desbordamiento horizontal.
+
+La aplicación terminó la grabación real y mostró «Vídeo listo». Se descargó un MP4 de 1280 por 960, 525,6111 segundos y 29.765.210 bytes. Se comprobó la navegación del primer paso al último y en sentido inverso: 0 segundos y 501,578899 segundos, respectivamente. El reproductor llegó al fotograma final sin error. El vídeo no tiene audio. La clave no se leyó, copió ni registró.
+
+El vídeo y las capturas de este manual quedan como archivos privados para el usuario. No se incluyen en el repositorio ni en GitHub Pages.
+
 ## Límites
 
 No se dispone del JSON original que produjo la captura. El nuevo formato elimina por construcción las referencias a piezas inexistentes y la duplicación de poses finales, pero no acredita qué condición concreta falló en aquella respuesta.
 
-No se ha hecho una generación de pago con una clave válida de OpenAI. La interpretación real del PDF por GPT-6.1 Sol y su fidelidad completa al montaje siguen pendientes de esa prueba. Las respuestas simuladas demuestran el funcionamiento del programa ante los datos ensayados, no el comportamiento del modelo.
+La prueba real confirma la generación y reproducción de esta guía. No acredita cada medida, posición o fijación: la geometría es aproximada y el manual conserva la autoridad sobre el montaje.
 
 No se ha realizado un montaje físico ni una validación profesional de herrajes. La prueba móvil usa viewports de navegador, no un teléfono físico. Los formatos y la calidad de vídeo dependen del navegador.
