@@ -78,6 +78,7 @@ Se utilizó únicamente una clave ficticia en un origen local de prueba. No se l
 ## Verificado en local
 
 - TypeScript, ESLint sin avisos y compilación estática de Next.js 16.4.2: correctos.
+- La comprobación de tipos ejecuta primero `next typegen`, como indica la documentación de Next.js, para generar los tipos de imágenes y rutas también en una copia limpia. El archivo generado `next-env.d.ts` permanece fuera de Git.
 - Cuarenta y una pruebas de regresión en `pnpm test`, incluidas cantidades y referencias del inventario interactivo, credenciales demo, sesión, almacenamiento, doble toque, rachas, tiempos y posiciones variables, estimaciones y biblioteca de montajes.
 - La petición usa `gpt-6.1-sol`, `reasoning.effort: "xhigh"`, 64.000 tokens máximos de salida, `stream: true`, `store: false` y esquema estricto. No incluye parámetros de muestreo ni cambia a un modelo alternativo.
 - Cada pieza contiene sus movimientos. El compilador asigna ids únicos, construye las referencias y deriva la pose final del último movimiento. Se comprueba el desplazamiento conjunto de 80 piezas con el mismo código impreso.
