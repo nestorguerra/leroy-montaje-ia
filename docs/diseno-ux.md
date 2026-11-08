@@ -10,9 +10,11 @@ Se inspeccionaron pantallas públicas de las tres webs. En BILT se observó la p
 
 ## Decisiones
 
-La portada tiene un trabajo: recibir un PDF. La acción principal es toda la zona de carga. No hay un segundo botón de generar, elección de modelo, pestañas de producto o panel de herramientas.
+Tras el acceso demo solicitado, la portada tiene un trabajo: recibir un PDF. La acción principal es toda la zona de carga. No hay un segundo botón de generar, elección de modelo, pestañas de producto o panel de herramientas.
 
 La conexión se pide al necesitarla. El diálogo conserva el PDF pendiente y explica el uso de la clave y la posible revisión adicional. El acceso discreto en la cabecera permite cambiar o desconectar la clave sin ocupar el recorrido principal.
+
+El acceso usa **demo / demo**, conserva la sesión en la pestaña y ofrece Salir en la cabecera. La pantalla explica que no crea una cuenta personal. El diálogo OpenAI incorpora un guardado opcional en este navegador, desmarcado por defecto, con aviso del acceso desde el dispositivo y opción de borrado. La clave guardada nunca se rellena de nuevo en el campo visible.
 
 La lectura muestra una espera indeterminada con el nombre del PDF y opción de cancelar. No se inventan porcentajes de interpretación. Una revisión de referencias cambia el estado visible a ajuste de piezas y movimientos.
 
@@ -22,10 +24,10 @@ El giro y el zoom funcionan durante la reproducción y la pausa. El menú Vistas
 
 No se prepara un vídeo plano ni se reemplaza el modelo. En escritorio, el contexto aparece a la derecha; en móvil, debajo. El paso actual está separado de la lista compacta de navegación. La lista mantiene visible el paso activo con desplazamiento propio, sin mover la página. Los controles tienen objetivos táctiles de al menos 44 px.
 
-El manual original y las simplificaciones están accesibles junto a la guía. El siguiente manual se puede arrastrar sobre la página o elegir al final. No se añaden galerías, cuentas ni historial.
+El manual original y las simplificaciones están accesibles junto a la guía. El siguiente manual se puede arrastrar sobre la página o elegir al final. No se añaden galerías, cuentas personales ni historial.
 
 ## Sistema visual
 
-Tipografía del sistema, blanco, gris `#f5f5f7`, texto `#1d1d1f` y acento azul `#0071e3`. La marca es propia: montaje. Una ilustración SVG original identifica el PDF y el ejemplo DAY muestra el tipo de representación disponible.
+Tipografía del sistema, blanco, gris `#f5f5f7` y texto `#1d1d1f`. La cabecera muestra exactamente **Leroy Merlin Labs** y, debajo, **Montaje de N**. El verde `#78be20`, presente en los estilos de la [web corporativa de Leroy Merlin](https://corporativo.leroymerlin.es/recursos-graficos), queda limitado al pequeño símbolo de la marca. Se utiliza un verde oscuro derivado, `#277a17`, para textos, foco y botones con mejor contraste. Los fondos siguen siendo blancos y grises. No se copia el logotipo oficial. Una ilustración SVG original identifica el PDF y el ejemplo DAY muestra el tipo de representación disponible. Revisión de marca: 8 de noviembre de 2026.
 
 Diálogo nativo con foco contenido y Escape, etiquetas de controles, zonas táctiles, foco visible y preferencia de movimiento reducido. El diseño debe funcionar a 320, 390, 768, 1024 y 1440 px.

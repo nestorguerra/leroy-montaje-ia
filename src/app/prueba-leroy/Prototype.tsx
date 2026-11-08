@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import StageView, { type StageHandle } from "@/components/StageView";
-import ManualStudio from "@/components/ManualStudio";
+import DemoAccess from "@/components/montage/DemoAccess";
 import VideoButton from "@/components/VideoButton";
 import { buildDayPlan } from "@/lib/leroy/day-plan";
 import { buildNeoPlan } from "@/lib/leroy/neo-plan";
@@ -35,7 +35,7 @@ export default function Prototype() {
           <span className="lab-choice-number">{choice.n}</span><span><strong>{choice.name}</strong><small>{choice.description}</small></span><span className="lab-choice-dot"/>
         </button>)}
       </nav>
-      <div hidden={productId !== "manual"}><ManualStudio/></div>
+      <div hidden={productId !== "manual"}><DemoAccess/></div>
       {productId !== "manual" && <ProductPreview key={productId} productId={productId}/>}
     </main>
     <footer className="lab-footer"><p>Adaptación experimental sobre <a href="https://github.com/Nutlope/bygga" target="_blank" rel="noreferrer">Bygga, código abierto con licencia MIT</a>. Conserva su motor 3D. Mesa DAY y cómoda NEO son ejemplos preparados a mano; los nuevos manuales se interpretan con OpenAI.</p><p>Guías visuales esquemáticas. Contrasta siempre los pasos con el manual del fabricante. Vídeo animado sin audio, generado en tu navegador.</p></footer>

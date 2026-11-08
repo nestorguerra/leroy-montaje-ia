@@ -1,4 +1,4 @@
-# Montaje. Tu manual, en movimiento.
+# Leroy Merlin Labs · Montaje de N
 
 [Abrir la aplicación](https://nestorguerra.github.io/leroy-montaje-ia/)
 
@@ -6,9 +6,10 @@ Copia independiente de la prueba Leroy Merlin, basada en el motor 3D de [Bygga](
 
 ## Uso
 
-1. Arrastra el PDF completo del manual, hasta 20 MB, o toca la zona para elegirlo.
-2. Si hace falta, introduce tu API Key de OpenAI. Solo se pide una vez por sesión.
-3. La guía aparece automáticamente con tres vistas: **Producto**, **Piezas** y **Montaje**. En móvil, la información queda debajo del modelo.
+1. Entra con usuario **demo** y contraseña **demo**.
+2. Arrastra el PDF completo del manual, hasta 20 MB, o toca la zona para elegirlo.
+3. Si hace falta, introduce tu API Key de OpenAI. Puedes marcar **Guardar clave en este navegador** para recordarla en próximas visitas.
+4. La guía aparece automáticamente con tres vistas: **Producto**, **Piezas** y **Montaje**. En móvil, la información queda debajo del modelo.
 
 Arrastra el modelo para girarlo, usa la rueda o pellizca para acercarte. En **Producto** ves el resultado final. En **Piezas** puedes buscar por nombre o código y aislar una unidad. Las piezas idénticas se agrupan sin perder sus cantidades. En **Montaje** puedes reproducir la secuencia, pausar, avanzar dentro de cada paso, saltar al anterior o siguiente, repetir y reducir la velocidad. Puedes seguir girando y ampliando el modelo mientras se reproduce.
 
@@ -22,11 +23,15 @@ Para empezar otra guía, basta con arrastrar otro PDF. No hay selectores de prod
 
 GitHub Pages sirve una aplicación estática. La petición va directamente del navegador a `https://api.openai.com/v1/responses`, con la clave aportada por cada usuario. No se incluye una clave del propietario en el código ni en GitHub Secrets.
 
-La clave se mantiene en memoria de React. Se borra al recargar o al pulsar **Desconectar** dentro de la conexión OpenAI. No se guarda en cookies, localStorage, sessionStorage, IndexedDB ni un servidor propio. No se registra la clave ni el contenido de los manuales.
+El acceso **demo / demo** es una puerta de demostración implementada en el cliente. No crea una cuenta ni verifica la identidad en un servidor. Su marcador de sesión está en `sessionStorage` y permite recargar la pestaña sin volver a entrar. El código y los archivos estáticos siguen siendo públicos.
+
+Por defecto, la clave permanece solo en memoria de React y se borra al recargar o cerrar sesión. **Guardar clave en este navegador** está desmarcado inicialmente. Si lo marcas, la clave se guarda sin cifrar en `localStorage` del origen de esta web, con un nombre propio de la aplicación. Se recupera al volver a entrar. No se sincroniza entre dispositivos ni se envía a un servidor propio. El acceso demo no cifra ni protege ese almacenamiento frente a otras personas con acceso al navegador o al mismo origen.
+
+**Salir** cierra el acceso demo, cancela la lectura activa y retira la guía y la conexión de la sesión. Conserva una clave guardada voluntariamente. Para borrarla, abre **OpenAI** y pulsa **Desconectar y borrar clave**. También puedes desmarcar el guardado y pulsar **Guardar cambios** para seguir conectado solo en memoria. Si el navegador impide guardar o borrar, se muestra un error y no se anuncia que la operación haya terminado. No se registra la clave ni el contenido de los manuales.
 
 Soltar o elegir un PDF inicia la petición si ya hay una clave. En caso contrario, conectar la clave inicia el manual pendiente. Se usa `store: false`; esto no elimina las políticas de tratamiento o retención aplicables a la cuenta de OpenAI. El consumo se factura en esa cuenta de API.
 
-Una clave usada en el navegador puede ser leída por el propio navegador, sus extensiones y quien controle el dispositivo. Este prototipo usa una clave personal por sesión. Un servicio con una clave compartida requiere un servidor con autenticación y control de gasto. Véase la [biblioteca JavaScript de OpenAI](https://developers.openai.com/api/reference/typescript).
+Una clave usada en el navegador puede ser leída por el propio navegador, sus extensiones y quien controle el dispositivo. Usa el guardado solo en un equipo propio. Para un servicio con autenticación real o una clave compartida se necesita un servidor con control de acceso y gasto. La [guía de claves de OpenAI](https://developers.openai.com/api/docs/guides/api-keys) recomienda mantener los secretos fuera del código del navegador; esta demostración permite usar y recordar una clave personal por decisión del usuario.
 
 El manual original solo tiene una URL local temporal en la pestaña. No se publica en GitHub.
 
@@ -80,6 +85,7 @@ GitHub Actions ejecuta las comprobaciones y publica `out/` al actualizar `main`.
 
 - `src/components/ManualStudio.tsx`: recorrido de PDF, conexión y estados.
 - `src/components/montage/`: carga, diálogo, vistas, inventario y reproducción interactiva.
+- `src/lib/browser-session.ts`: acceso demo y almacenamiento opcional de la clave.
 - `src/app/prueba-leroy/montage.css`: diseño adaptable.
 - `src/lib/ai/openai.ts`: peticiones y revisión limitada.
 - `src/lib/ai/blueprint.ts`: formato de generación y compilador de movimientos por pieza.
@@ -88,6 +94,7 @@ GitHub Actions ejecuta las comprobaciones y publica `out/` al actualizar `main`.
 - `src/lib/assembly-inventory.ts`: agrupación de piezas conservando las cantidades y referencias.
 - `src/lib/video.ts`: utilidades de duración y grabación conservada fuera del recorrido principal.
 - `tests/guide.test.mjs`: regresiones de referencias, revisión e inventario.
+- `tests/browser-session.test.mjs`: credenciales demo, cierre de sesión, guardado, borrado y almacenamiento bloqueado.
 - `src/engine/`: motor 3D de Bygga.
 - `src/lib/leroy/`, `src/data/leroy-*.json` y `docs/prueba-leroy/procedencia.json`: ejemplos originales.
 - [Decisiones de UX y referencias](docs/diseno-ux.md).

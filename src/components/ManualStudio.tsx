@@ -1,19 +1,22 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Box, Check, CircleAlert, FileText, KeyRound, X } from "lucide-react";
+import { Check, CircleAlert, FileText, KeyRound, LogOut, X } from "lucide-react";
 import StageView from "./StageView";
 import ConnectionDialog from "./montage/ConnectionDialog";
 import PDFDropzone, { ManualIllustration } from "./montage/PDFDropzone";
 import GuideExperience from "./montage/GuideExperience";
+import Brand from "./montage/Brand";
+import { browserStorage, loadSavedApiKey, updateSavedApiKey } from "@/lib/browser-session";
 import { buildDayPlan } from "@/lib/leroy/day-plan";
 import { buildAIPlan } from "@/lib/ai/guide";
 import { generateGuide, MODELS, validateFiles, type GeneratedGuide } from "@/lib/ai/openai";
 
 type Result = { generated: GeneratedGuide; manualURL: string };
 
-export default function ManualStudio() {
-  const [apiKey, setApiKey] = useState("");
+export default function ManualStudio({ onLogout }: { onLogout: () => void }) {
+  const [connection, setConnection] = useState(() => { const key = loadSavedApiKey(browserStorage("localStorage")); return { key, saved: !!key }; });
+  const { key: apiKey, saved: keySaved } = connection;
   const [connectionOpen, setConnectionOpen] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [result, setResult] = useState<Result | null>(null);
@@ -28,11 +31,14 @@ export default function ManualStudio() {
   const mounted = useRef(true);
   const selection = useRef(0);
   const dragDepth = useRef(0);
+  const homeHeading = useRef<HTMLHeadingElement | null>(null);
   const processingHeading = useRef<HTMLHeadingElement | null>(null);
   const preview = useMemo(() => buildDayPlan(), []);
 
   useEffect(() => {
     mounted.current = true;
+    homeHeading.current?.focus({ preventScroll: true });
+    window.scrollTo(0, 0);
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const update = () => setReduceMotion(motion.matches);
     update(); motion.addEventListener("change", update);
@@ -74,11 +80,17 @@ export default function ManualStudio() {
       else { setPendingFile(files[0]); setConnectionOpen(true); }
     } catch (e) { if (mounted.current && id === selection.current) setError(e instanceof Error ? e.message : "No se ha podido abrir el PDF."); }
   }
-  function connect(key: string) {
-    setApiKey(key); setConnectionOpen(false);
-    if (pendingFile) void start(pendingFile, key);
+  function connect(key: string | null, remember: boolean) {
+    const next = key || apiKey;
+    updateSavedApiKey(browserStorage("localStorage"), next, remember, keySaved);
+    setConnection({ key: next, saved: remember }); setConnectionOpen(false);
+    if (pendingFile) void start(pendingFile, next);
   }
   function closeConnection() { setConnectionOpen(false); setPendingFile(null); }
+  function disconnect() {
+    updateSavedApiKey(browserStorage("localStorage"), "", false, keySaved);
+    controller.current?.abort(); setConnection({ key: "", saved: false }); closeConnection();
+  }
 
   return <div className={`montage-app ${dragging ? "has-file-drag" : ""}`} onDragEnter={e => {
     if (!Array.from(e.dataTransfer.types).includes("Files")) return;
@@ -86,11 +98,11 @@ export default function ManualStudio() {
   }} onDragOver={e => { if (Array.from(e.dataTransfer.types).includes("Files")) e.preventDefault(); }} onDragLeave={e => {
     e.preventDefault(); dragDepth.current = Math.max(0, dragDepth.current - 1); if (!dragDepth.current) setDragging(false);
   }} onDrop={e => { e.preventDefault(); setDragging(false); dragDepth.current = 0; if (!busy && !connectionOpen) void acceptFiles(Array.from(e.dataTransfer.files)); }}>
-    <header className="montage-header"><div className="montage-header-inner"><a className="montage-brand" href={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/`} aria-label="Montaje, inicio"><Box size={22} strokeWidth={1.5}/><span>montaje<span className="brand-stop">.</span></span></a><button className="connection-trigger" onClick={() => setConnectionOpen(true)} disabled={busy} aria-label="Conexión con OpenAI"><span className={`connection-dot ${apiKey ? "is-ready" : ""}`}/><span>OpenAI</span><KeyRound size={13}/></button></div></header>
+    <header className="montage-header"><div className="montage-header-inner"><Brand/><div className="header-actions"><button className="connection-trigger" onClick={() => setConnectionOpen(true)} disabled={busy} aria-label="Conexión con OpenAI"><span className={`connection-dot ${apiKey ? "is-ready" : ""}`}/><span>OpenAI</span><KeyRound size={13}/></button><button className="session-exit" onClick={onLogout} aria-label="Cerrar sesión demo"><LogOut size={16}/><span>Salir</span></button></div></div></header>
     <main id="main-content">
       {!busy && !result && <section className="montage-start" aria-labelledby="montage-title">
         <p className="montage-eyebrow">DEL MANUAL AL MONTAJE</p>
-        <h1 id="montage-title">Tu manual.<br/><span>Ahora, en movimiento.</span></h1>
+        <h1 id="montage-title" ref={homeHeading} tabIndex={-1}>Tu manual.<br/><span>Ahora, en movimiento.</span></h1>
         <p className="montage-intro">Arrastra el PDF. Descubre cómo se monta,<br className="desktop-break"/> paso a paso.</p>
         {error && <div className="montage-error" role="alert"><CircleAlert size={19}/><div><strong>No hemos podido crear la guía.</strong><p>{error}</p></div></div>}
         <PDFDropzone onFiles={files => void acceptFiles(files)} dragging={dragging}/>
@@ -102,7 +114,7 @@ export default function ManualStudio() {
       {!busy && result && <GuideExperience key={result.generated.createdAt} result={result.generated} manualURL={result.manualURL} onFiles={files => void acceptFiles(files)} dragging={dragging} reduceMotion={reduceMotion}/>}
     </main>
     <footer className="montage-footer"><div><span><Check size={13}/> Tu manual no se publica.</span><p>Guía visual orientativa. Contrasta siempre el montaje con el manual original.</p><p>Proyecto independiente de Leroy Merlin. Motor 3D de <a href="https://github.com/Nutlope/bygga" target="_blank" rel="noreferrer">Bygga</a>, licencia MIT.</p></div></footer>
-    <ConnectionDialog open={connectionOpen} connected={!!apiKey} pendingName={pendingFile?.name} onDismiss={closeConnection} onConnect={connect} onDisconnect={() => { controller.current?.abort(); setApiKey(""); closeConnection(); }}/>
+    {connectionOpen && <ConnectionDialog open connected={!!apiKey} remembered={keySaved} pendingName={pendingFile?.name} onDismiss={closeConnection} onConnect={connect} onDisconnect={disconnect}/>}
     {dragging && <div className="global-drop-hint" aria-hidden="true"><span><FileText size={25}/>Suelta tu manual. Nosotros seguimos.</span></div>}
   </div>;
 }

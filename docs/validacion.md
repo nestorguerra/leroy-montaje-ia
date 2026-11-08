@@ -1,11 +1,27 @@
-# Comprobaciones de generación y visor interactivo
+# Comprobaciones de acceso, generación y visor interactivo
 
-Fecha: 7 de noviembre de 2026.
+Última revisión: 8 de noviembre de 2026. Las pruebas del PDF real y del visor descritas más abajo corresponden al 7 de noviembre.
+
+## Acceso demo, clave y marca
+
+Comprobación del 8 de noviembre en el navegador integrado WebKit con la compilación estática de publicación:
+
+- Cabecera con los textos exactos Leroy Merlin Labs y Montaje de N. Blanco y gris como base, verde en la marca y las acciones.
+- Usuario demo y contraseña demo permiten entrar. Una contraseña incorrecta muestra un error. Enter envía el formulario. El foco pasa al título de la portada y el desplazamiento vuelve al inicio.
+- Recargar conserva el acceso demo de la pestaña. Salir devuelve al formulario y limpia los campos de acceso.
+- El guardado está desmarcado inicialmente. Una conexión sin guardar desaparece al recargar. Marcar el guardado permite recuperar la conexión al recargar y después de salir y volver a entrar. El campo de clave permanece vacío al abrir la conexión guardada.
+- Desmarcar el guardado y guardar los cambios retira la copia persistente. Desconectar y borrar clave también la elimina. Se recargó después de cada operación para comprobar que no se recuperaba la conexión.
+- Diálogo con foco inicial en la clave, Tab y Mayús+Tab contenidos, Escape y aviso del guardado en el dispositivo.
+- Acceso, portada y diálogo a 320, 768, 1024 y 1440 px, sin desbordamiento horizontal. Botones principales de 48 px y salida de 44 px. Revisión visual del acceso y del diálogo en móvil y escritorio.
+- Sin avisos ni errores de consola en este recorrido.
+- Pruebas de almacenamiento bloqueado, datos corruptos y conservación de datos ajenos en las pruebas automáticas. No se simularon permisos del navegador desde la interfaz.
+
+Se utilizó únicamente una clave ficticia en un origen local de prueba. No se leyó ni guardó la clave real del usuario y no se llamó a OpenAI. El acceso demo está implementado en el cliente y no equivale a autenticación de servidor. El guardado es local, opcional y sin cifrado; no añade cuentas personales ni sincronización.
 
 ## Verificado en local
 
 - TypeScript, ESLint sin avisos y compilación estática de Next.js 16.4.2: correctos.
-- Veinte pruebas de regresión en `pnpm test`, incluidas cantidades y referencias del inventario interactivo.
+- Veintiséis pruebas de regresión en `pnpm test`, incluidas cantidades y referencias del inventario interactivo, credenciales demo, sesión y almacenamiento opcional.
 - La petición usa `gpt-6.1-sol`, `reasoning.effort: "xhigh"`, 64.000 tokens máximos de salida, `stream: true`, `store: false` y esquema estricto. No incluye parámetros de muestreo ni cambia a un modelo alternativo.
 - Cada pieza contiene sus movimientos. El compilador asigna ids únicos, construye las referencias y deriva la pose final del último movimiento. Se comprueba el desplazamiento conjunto de 80 piezas con el mismo código impreso.
 - Un cilindro tiene un solo diámetro. Se rechazan páginas fuera del manual, índices de paso inexistentes, medidas inválidas y poses contradictorias de una pieza en un mismo paso. Una repetición idéntica se deduplica.
@@ -31,7 +47,7 @@ Chrome real, automatizado con Playwright y respuestas de OpenAI simuladas:
 
 Estas comprobaciones de grabación corresponden a la versión anterior. El visor actual conserva el 3D y no genera vídeo automáticamente.
 
-## Visor interactivo actual
+## Visor interactivo, comprobación del 7 de noviembre
 
 Comprobación en el navegador integrado WebKit con una compilación estática local y datos sintéticos privados, sin nuevas llamadas de OpenAI:
 

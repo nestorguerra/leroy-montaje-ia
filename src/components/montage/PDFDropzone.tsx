@@ -10,7 +10,7 @@ export function ManualIllustration() {
     <path d="m30 42 13-6 14 6-14 6-13-6Z" stroke="#85858a" strokeWidth="1.5" strokeLinejoin="round"/>
     <path d="M31 43v16m24-16v16M43 49v17" stroke="#85858a" strokeWidth="1.5" strokeLinecap="round"/>
     <path d="M26 71h15m5 0h12" stroke="#d2d2d7" strokeWidth="2" strokeLinecap="round"/>
-    <rect x="1" y="64" width="32" height="21" rx="6" fill="#0071e3"/>
+    <rect x="1" y="64" width="32" height="21" rx="6" fill="var(--brand)"/>
     <text x="17" y="78" textAnchor="middle" fill="white" fontFamily="Arial,sans-serif" fontSize="10" fontWeight="700">PDF</text>
   </svg>;
 }
