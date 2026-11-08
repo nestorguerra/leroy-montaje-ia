@@ -19,6 +19,10 @@ Al elegir un paso en pausa, ves cómo queda. Al reproducirlo, ves cómo se reali
 
 Para empezar otra guía, basta con arrastrar otro PDF. No hay selectores de productos o modelos ni un botón adicional de generación. La mesa DAY aparece como ejemplo visual en la portada. Los datos originales de DAY y SPACEO NEO se conservan en el código.
 
+Mientras se interpreta el manual aparece **Clava la espera**, un minijuego de martillo y clavos con aciertos, rachas y pausa. Funciona con ratón, toque o flechas y Espacio. Al ocultar la pestaña el juego se detiene; la lectura del manual continúa. Con movimiento reducido empieza pausado. La guía sustituye automáticamente la espera cuando está lista, aunque el juego esté pausado.
+
+La espera muestra el tiempo transcurrido real. OpenAI no proporciona un tiempo restante. Después de al menos dos guías completadas con el mismo modelo, se ofrece una referencia amplia de minutos basada en las últimas seis duraciones de este navegador. Si la espera supera esa referencia, se indica que está tardando más, sin prometer una llegada a cero. Se guardan automáticamente solo esas duraciones, sin nombres, páginas, contenido ni claves. Si el almacenamiento no está disponible, la guía continúa y se muestra únicamente el reloj. No se añaden llamadas de OpenAI para jugar ni para estimar el tiempo.
+
 ## Clave y archivos
 
 GitHub Pages sirve una aplicación estática. La petición va directamente del navegador a `https://api.openai.com/v1/responses`, con la clave aportada por cada usuario. No se incluye una clave del propietario en el código ni en GitHub Secrets.
@@ -85,7 +89,9 @@ GitHub Actions ejecuta las comprobaciones y publica `out/` al actualizar `main`.
 
 - `src/components/ManualStudio.tsx`: recorrido de PDF, conexión y estados.
 - `src/components/montage/`: carga, diálogo, vistas, inventario y reproducción interactiva.
+- `src/components/montage/GenerationWait.tsx` y `NailGame.tsx`: espera, reloj y minijuego.
 - `src/lib/browser-session.ts`: acceso demo y almacenamiento opcional de la clave.
+- `src/lib/generation-timing.ts` y `waiting-game.ts`: duraciones locales y reglas de los clavos.
 - `src/app/prueba-leroy/montage.css`: diseño adaptable.
 - `src/lib/ai/openai.ts`: peticiones y revisión limitada.
 - `src/lib/ai/blueprint.ts`: formato de generación y compilador de movimientos por pieza.
@@ -95,6 +101,7 @@ GitHub Actions ejecuta las comprobaciones y publica `out/` al actualizar `main`.
 - `src/lib/video.ts`: utilidades de duración y grabación conservada fuera del recorrido principal.
 - `tests/guide.test.mjs`: regresiones de referencias, revisión e inventario.
 - `tests/browser-session.test.mjs`: credenciales demo, cierre de sesión, guardado, borrado y almacenamiento bloqueado.
+- `tests/waiting.test.mjs`: doble toque, rachas, tiempos no disponibles, almacenamiento bloqueado y estimaciones que se alargan.
 - `src/engine/`: motor 3D de Bygga.
 - `src/lib/leroy/`, `src/data/leroy-*.json` y `docs/prueba-leroy/procedencia.json`: ejemplos originales.
 - [Decisiones de UX y referencias](docs/diseno-ux.md).
@@ -102,4 +109,6 @@ GitHub Actions ejecuta las comprobaciones y publica `out/` al actualizar `main`.
 
 Documentación consultada el 7 de noviembre de 2026: [GPT-6.1 Sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol), [migración a GPT-6](https://developers.openai.com/api/docs/guides/latest-model/gpt-6-astra#migration-quickstart), [PDF](https://developers.openai.com/api/docs/guides/file-inputs), [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs), [streaming](https://developers.openai.com/api/docs/guides/streaming-responses), [estado de conversación](https://developers.openai.com/api/docs/guides/conversation-state), [exportación estática de Next.js](https://nextjs.org/docs/app/guides/static-exports) y [GitHub Pages con Actions](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 
-Proyecto experimental independiente, sin afiliación oficial con Leroy Merlin. La licencia MIT no concede derechos sobre marcas ni manuales de terceros.
+La cabecera utiliza Leroy Merlin Sans en sus pesos Regular y Bold, servidos desde la propia aplicación mediante `next/font/local`. [Procedencia y archivos originales](src/assets/fonts/leroy-merlin/README.md).
+
+Proyecto experimental independiente, sin afiliación oficial con Leroy Merlin. La licencia MIT no concede derechos sobre marcas, fuentes ni manuales de terceros.

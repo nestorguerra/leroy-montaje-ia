@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, CircleAlert, FileText, KeyRound, LogOut, X } from "lucide-react";
+import { Check, CircleAlert, FileText, KeyRound, LogOut } from "lucide-react";
 import StageView from "./StageView";
 import ConnectionDialog from "./montage/ConnectionDialog";
-import PDFDropzone, { ManualIllustration } from "./montage/PDFDropzone";
+import PDFDropzone from "./montage/PDFDropzone";
 import GuideExperience from "./montage/GuideExperience";
 import Brand from "./montage/Brand";
+import GenerationWait from "./montage/GenerationWait";
 import { browserStorage, loadSavedApiKey, updateSavedApiKey } from "@/lib/browser-session";
+import { recordGenerationTime } from "@/lib/generation-timing";
 import { buildDayPlan } from "@/lib/leroy/day-plan";
 import { buildAIPlan } from "@/lib/ai/guide";
 import { generateGuide, MODELS, validateFiles, type GeneratedGuide } from "@/lib/ai/openai";
@@ -23,6 +25,7 @@ export default function ManualStudio({ onLogout }: { onLogout: () => void }) {
   const [busy, setBusy] = useState(false);
   const [phase, setPhase] = useState<"interpreting" | "correcting">("interpreting");
   const [filename, setFilename] = useState("");
+  const [startedAt, setStartedAt] = useState(0);
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -32,7 +35,6 @@ export default function ManualStudio({ onLogout }: { onLogout: () => void }) {
   const selection = useRef(0);
   const dragDepth = useRef(0);
   const homeHeading = useRef<HTMLHeadingElement | null>(null);
-  const processingHeading = useRef<HTMLHeadingElement | null>(null);
   const preview = useMemo(() => buildDayPlan(), []);
 
   useEffect(() => {
@@ -44,12 +46,12 @@ export default function ManualStudio({ onLogout }: { onLogout: () => void }) {
     update(); motion.addEventListener("change", update);
     return () => { mounted.current = false; controller.current?.abort(); URL.revokeObjectURL(sourceURL.current); motion.removeEventListener("change", update); };
   }, []);
-  useEffect(() => { if (busy) processingHeading.current?.focus(); }, [busy]);
 
   async function start(file: File, key: string) {
     if (controller.current) return;
     const abort = new AbortController(); controller.current = abort;
-    setBusy(true); setFilename(file.name); setError(""); setPendingFile(null); setResult(null);
+    const startTime = Date.now();
+    setStartedAt(startTime); setBusy(true); setFilename(file.name); setError(""); setPendingFile(null); setResult(null);
     URL.revokeObjectURL(sourceURL.current); sourceURL.current = "";
     const timeout = setTimeout(() => abort.abort("timeout"), 15 * 60 * 1000);
     try {
@@ -58,6 +60,7 @@ export default function ManualStudio({ onLogout }: { onLogout: () => void }) {
       if (generated.guide.status !== "ready") throw new Error(generated.guide.reason || "Faltan instrucciones de montaje. Prueba con el manual completo.");
       buildAIPlan(generated.guide);
       const url = URL.createObjectURL(file); sourceURL.current = url;
+      recordGenerationTime(browserStorage("localStorage"), MODELS[0].id, Date.now() - startTime);
       setResult({ generated, manualURL: url });
     } catch (e) {
       if (!mounted.current) return;
@@ -109,7 +112,7 @@ export default function ManualStudio({ onLogout }: { onLogout: () => void }) {
         <p className="montage-upload-note">Tu producto en 3D. Cada pieza. Todos los pasos.</p>
         <div className="montage-preview" aria-label="Ejemplo de una animación de montaje"><div className="preview-copy"><span className="preview-small">ASÍ SE VE UNA GUÍA</span><p>Cada pieza.<br/>Todo más claro.</p><span className="preview-detail">Una interpretación visual de tu manual.</span></div><div className="preview-model"><StageView plan={preview} mode={{ kind: "assembled", turntable: !reduceMotion }} paused={reduceMotion} options={{ labels: false, interactive: false }}/></div><span className="preview-example">Modelo de ejemplo</span></div>
       </section>}
-      {busy && <section className="montage-processing" aria-busy="true" aria-labelledby="processing-title"><div className="processing-art" aria-hidden="true"><ManualIllustration/><span/><span/></div><p className="montage-eyebrow">TU GUÍA ESTÁ EN CAMINO</p><h1 id="processing-title" ref={processingHeading} tabIndex={-1}>El manual se lee.<br/><span>El montaje se ve.</span></h1><p role="status">{phase === "correcting" ? "Estamos ajustando las piezas y sus movimientos." : "Estamos interpretando las piezas y los pasos."}<br/>Puede tardar unos minutos.</p><div className="processing-file"><FileText size={16}/><span>{filename}</span><button aria-label="Cancelar lectura del manual" onClick={() => controller.current?.abort()}><X size={17}/></button></div><div className="processing-line" aria-hidden="true"><span/></div></section>}
+      {busy && <GenerationWait filename={filename} phase={phase} startedAt={startedAt} model={MODELS[0].id} reduceMotion={reduceMotion} onCancel={() => controller.current?.abort()}/>}
       {!busy && result && error && <div className="montage-error result-error" role="alert"><CircleAlert size={19}/><p>{error}</p></div>}
       {!busy && result && <GuideExperience key={result.generated.createdAt} result={result.generated} manualURL={result.manualURL} onFiles={files => void acceptFiles(files)} dragging={dragging} reduceMotion={reduceMotion}/>}
     </main>

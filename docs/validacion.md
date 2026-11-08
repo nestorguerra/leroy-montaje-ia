@@ -2,6 +2,23 @@
 
 Última revisión: 8 de noviembre de 2026. Las pruebas del PDF real y del visor descritas más abajo corresponden al 7 de noviembre.
 
+## Tipografía y minijuego de espera
+
+Comprobación del 8 de noviembre con la compilación estática y una pantalla privada de prueba, sin llamadas de OpenAI:
+
+- Leroy Merlin Sans Regular y Bold originales, descargadas desde las rutas declaradas en los estilos corporativos. Next.js las sirve desde la propia aplicación y la cabecera muestra el nombre en mayúsculas y Labs con menor peso. La procedencia y los hashes están junto a las fuentes.
+- Tablero de nueve huecos con clavos que aparecen, golpe de martillo, aciertos, racha y mejor racha. Se comprobaron varios aciertos seguidos, el doble clic sin puntuación duplicada, Espacio para golpear y flechas para mover el foco.
+- Pausa y reanudación manual. El reloj siguió avanzando con el juego pausado. Movimiento reducido: el juego empieza en pausa y los controles permanecen disponibles.
+- Estado de interpretación y cambio a revisión, tiempo transcurrido, falta de estimación inicial y rango orientativo con dos duraciones sintéticas. Los límites y la espera más larga que la referencia se comprueban también en las pruebas automáticas. Nunca se anuncia cero como garantía de finalización.
+- Cancelación y llegada simulada de una guía retiran el juego. Se comprobaron estos estados en la pantalla local; no se repitió una generación facturada para esta revisión.
+- Cabecera y espera a 320, 768, 1024 y 1440 px sin desbordamientos horizontales. En 320 por 740 px el tablero ocupa de 514 a 706 px de altura de la página y sus nueve casillas quedan a la vista. Casillas de 64 px en móvil pequeño y 80 px en escritorio.
+- Sin avisos ni errores de consola durante el recorrido.
+- Se guardan hasta seis duraciones completadas del mismo modelo, sin nombres ni contenido del manual. El almacenamiento bloqueado no interrumpe la guía.
+
+La pausa al ocultar la pestaña está implementada con el evento de visibilidad. El navegador integrado mantiene `document.hidden` en falso al cambiar entre sus pestañas; esa transición no se considera verificada en un navegador nativo. La prueba móvil utiliza viewports, no un teléfono físico.
+
+La pantalla de prueba y sus datos se retiran antes de la compilación y publicación. El modelo, la petición de OpenAI y las vistas del montaje no cambian.
+
 ## Acceso demo, clave y marca
 
 Comprobación del 8 de noviembre en el navegador integrado WebKit con la compilación estática de publicación:
@@ -21,7 +38,7 @@ Se utilizó únicamente una clave ficticia en un origen local de prueba. No se l
 ## Verificado en local
 
 - TypeScript, ESLint sin avisos y compilación estática de Next.js 16.4.2: correctos.
-- Veintiséis pruebas de regresión en `pnpm test`, incluidas cantidades y referencias del inventario interactivo, credenciales demo, sesión y almacenamiento opcional.
+- Treinta y dos pruebas de regresión en `pnpm test`, incluidas cantidades y referencias del inventario interactivo, credenciales demo, sesión, almacenamiento, doble toque, rachas y tiempos de espera.
 - La petición usa `gpt-6.1-sol`, `reasoning.effort: "xhigh"`, 64.000 tokens máximos de salida, `stream: true`, `store: false` y esquema estricto. No incluye parámetros de muestreo ni cambia a un modelo alternativo.
 - Cada pieza contiene sus movimientos. El compilador asigna ids únicos, construye las referencias y deriva la pose final del último movimiento. Se comprueba el desplazamiento conjunto de 80 piezas con el mismo código impreso.
 - Un cilindro tiene un solo diámetro. Se rechazan páginas fuera del manual, índices de paso inexistentes, medidas inválidas y poses contradictorias de una pieza en un mismo paso. Una repetición idéntica se deduplica.
