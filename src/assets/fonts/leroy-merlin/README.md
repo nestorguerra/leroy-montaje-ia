@@ -1,6 +1,6 @@
 # Leroy Merlin Sans
 
-Fuentes corporativas utilizadas únicamente en la cabecera de la demostración, a petición del usuario. Descargadas el 8 de noviembre de 2026, sin modificaciones, desde los archivos públicos referenciados por los estilos de la web corporativa de Leroy Merlin.
+Fuentes corporativas utilizadas para LABS y Montaje de N en la cabecera de la demostración, a petición del usuario. El nombre Leroy Merlin está dibujado en el archivo original del logotipo. Descargadas el 8 de noviembre de 2026, sin modificaciones, desde los archivos públicos referenciados por los estilos de la web corporativa de Leroy Merlin.
 
 - [Estilos de origen](https://corporativo.leroymerlin.es/o/lmes-public-theme-rebranding/css/main.css).
 - [LeroyMerlinSans-Web-Regular.woff2](https://corporativo.leroymerlin.es/o/lmes-public-theme-rebranding/fonts/Leroy-Merlin-Sans/LeroyMerlinSans-Web-Regular.woff2), SHA-256: `b9510caaca81e7484c576a83e30d93ce7cb9fb2826872439299cd417dfd01098`.

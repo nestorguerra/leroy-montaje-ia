@@ -25,12 +25,12 @@ export default function GenerationWait({ filename, phase, startedAt, model, redu
     return () => { clearTimeout(first); clearInterval(interval); document.removeEventListener("visibilitychange", update); };
   }, [startedAt]);
   const estimate = estimateRemaining(elapsed, samples);
-  const remaining = estimate.kind === "unknown" ? "OpenAI no indica cuánto falta." : estimate.kind === "longer" ? "Está tardando más que tus guías anteriores." : estimate.from === 0 ? `Orientativo: menos de ${estimate.to} ${estimate.to === 1 ? "minuto" : "minutos"} más.` : estimate.from === estimate.to ? `Orientativo: unos ${estimate.to} minutos más.` : `Orientativo: entre ${estimate.from} y ${estimate.to} minutos más.`;
+  const remaining = estimate.kind === "unknown" ? "Calculando..." : estimate.kind === "longer" ? "Más de lo previsto" : estimate.from === 0 ? `Menos de ${estimate.to} min aprox.` : estimate.from === estimate.to ? `Unos ${estimate.to} min` : `${estimate.from} a ${estimate.to} min`;
   return <section className="generation-wait" aria-labelledby="processing-title">
     <div className="generation-copy"><p className="montage-eyebrow">TU GUÍA ESTÁ EN CAMINO</p><h1 ref={heading} id="processing-title" tabIndex={-1}>Tu guía,<br/><span>en marcha.</span></h1><p className="generation-description">Puedes afinar la puntería mientras preparamos tu montaje. La guía aparecerá aquí en cuanto esté lista.</p>
       <div className="generation-progress" role="status" aria-atomic="true"><LoaderCircle size={18}/><span>{phase === "correcting" ? "Ajustando piezas y movimientos" : "Interpretando piezas y pasos"}</span></div>
-      <div className="generation-clock" aria-live="off"><Clock3 size={16}/><div><span>Tiempo transcurrido</span><strong>{formatElapsed(elapsed)}</strong></div></div>
-      <p className="generation-estimate">{remaining}{estimate.kind !== "unknown" && <> <span>Referencia de tus últimas guías, puede variar según el manual.</span></>}</p>
+      <div className="generation-estimate" aria-live="off"><span>Tiempo restante estimado</span><strong>{remaining}</strong><small>{estimate.kind === "longer" ? "Seguimos preparando tu guía. El tiempo puede variar." : samples.length ? `Referencia de ${samples.length} ${samples.length === 1 ? "guía anterior" : "guías anteriores"} de este navegador.` : "Estimación inicial de la app. Puede variar según el manual."}</small></div>
+      <div className="generation-clock" aria-live="off"><Clock3 size={14}/><div><span>Tiempo transcurrido</span><strong>{formatElapsed(elapsed)}</strong></div></div>
       <div className="processing-file generation-file"><FileText size={16}/><span>{filename}</span><button aria-label="Cancelar lectura del manual" onClick={onCancel}><X size={17}/></button></div>
       <p className="generation-reassurance"><Check size={13}/>El juego no cambia la velocidad de la IA.</p>
     </div>

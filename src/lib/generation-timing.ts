@@ -19,12 +19,13 @@ export function recordGenerationTime(storage: TimingStorage | null, model: strin
 export type RemainingEstimate = { kind: "unknown" } | { kind: "longer" } | { kind: "range"; from: number; to: number };
 export function estimateRemaining(elapsed: number, samples: number[]): RemainingEstimate {
   const durations = samples.filter(validDuration);
-  if (durations.length < 2 || !Number.isFinite(elapsed) || elapsed < 0) return { kind: "unknown" };
-  // A broad reference window from completed guides, not progress reported by OpenAI.
-  const earliest = Math.min(...durations) * .75;
-  const latest = Math.max(...durations) * 1.5 + 30000;
+  if (!Number.isFinite(elapsed) || elapsed < 0) return { kind: "unknown" };
+  // The first-use window is an explicit product heuristic, not API telemetry or a measured benchmark.
+  // Completed guides replace that initial assumption with actual durations from this browser.
+  const earliest = durations.length ? Math.min(...durations) * .75 : 3 * 60000;
+  const latest = durations.length ? Math.max(...durations) * 1.5 + 30000 : 10 * 60000;
   if (elapsed >= latest) return { kind: "longer" };
-  return { kind: "range", from: Math.max(0, Math.floor((earliest - elapsed) / 60000)), to: Math.max(1, Math.ceil((latest - elapsed) / 60000)) };
+  return { kind: "range", from: Math.max(0, Math.ceil((earliest - elapsed) / 60000)), to: Math.max(1, Math.ceil((latest - elapsed) / 60000)) };
 }
 
 export function formatElapsed(milliseconds: number) {

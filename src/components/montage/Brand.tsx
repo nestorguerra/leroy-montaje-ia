@@ -1,5 +1,6 @@
-import { Box } from "lucide-react";
+import Image from "next/image";
 import localFont from "next/font/local";
+import leroyMerlinLogo from "@/assets/branding/leroy-merlin.jpg";
 
 const leroyMerlinSans = localFont({
   src: [
@@ -10,5 +11,5 @@ const leroyMerlinSans = localFont({
 });
 
 export default function Brand() {
-  return <a className="montage-brand" href={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/`} aria-label="Leroy Merlin Labs, Montaje de N, inicio"><span className="brand-symbol" aria-hidden="true"><Box size={24} strokeWidth={1.5}/></span><span className={`brand-copy ${leroyMerlinSans.className}`}><strong><span className="brand-name">Leroy Merlin</span><span className="brand-labs">Labs</span></strong><small>Montaje de N</small></span></a>;
+  return <a className="montage-brand" href={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/`} aria-label="Leroy Merlin Labs, Montaje de N, inicio"><Image className="brand-logo" src={leroyMerlinLogo} alt="" aria-hidden="true" preload/><span className={`brand-copy ${leroyMerlinSans.className}`}><strong className="brand-labs">LABS</strong><small>Montaje de N</small></span></a>;
 }

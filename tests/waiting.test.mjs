@@ -9,7 +9,7 @@ load.extensions[".ts"] = (module, filename) => {
   const source = ts.transpileModule(fs.readFileSync(filename, "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }, fileName: filename });
   module._compile(source.outputText, filename);
 };
-const { initialNailGame, nailGameReducer: reduce } = load("../src/lib/waiting-game.ts");
+const { createNailRound, initialNailGame, nailGameReducer: reduce } = load("../src/lib/waiting-game.ts");
 const { loadGenerationTimes, recordGenerationTime, estimateRemaining, formatElapsed } = load("../src/lib/generation-timing.ts");
 const memory = () => {
   const values = new Map();
@@ -44,18 +44,41 @@ test("timing stores only six valid durations for the same model and preserves un
   assert.equal(storage.getItem("other-app"), "keep");
   for (const value of storage.getItem("leroy-montaje-ia:generation-timing:v1").split('"')) assert.equal(/manual|filename|key|api/i.test(value), false);
 });
-test("blocked or malformed timing storage never prevents a guide or creates a time estimate", () => {
+test("blocked or malformed timing storage never prevents a guide or fabricates completed timing history", () => {
   const blocked = { getItem() { throw new Error("blocked"); }, setItem() { throw new Error("blocked"); } };
   assert.doesNotThrow(() => recordGenerationTime(blocked, "model", 120000));
   assert.deepEqual(loadGenerationTimes(blocked, "model"), []);
   assert.deepEqual(loadGenerationTimes({ getItem: () => "broken JSON" }, "model"), []);
-  assert.deepEqual(estimateRemaining(1000, []), { kind: "unknown" });
-  assert.deepEqual(estimateRemaining(1000, [120000]), { kind: "unknown" });
+  assert.deepEqual(estimateRemaining(0, []), { kind: "range", from: 3, to: 10 });
+  assert.deepEqual(estimateRemaining(1000, []), { kind: "range", from: 3, to: 10 });
+  assert.deepEqual(estimateRemaining(1000, [120000]), { kind: "range", from: 2, to: 4 });
+  assert.deepEqual(estimateRemaining(600000, []), { kind: "longer" });
   assert.deepEqual(estimateRemaining(NaN, [120000, 180000]), { kind: "unknown" });
+});
+test("random nail rounds stay inside touch-safe board bounds and vary position, lifespan and rise speed", () => {
+  const slow = createNailRound(0, () => .9), fast = createNailRound(40, () => .1);
+  assert.notEqual(slow.x, fast.x); assert.notEqual(slow.y, fast.y);
+  assert.ok(fast.duration < slow.duration); assert.notEqual(slow.rise, fast.rise);
+  for (const score of [-1, 0, 20, 100, NaN]) for (const value of [-1, 0, .5, 1, NaN]) {
+    const round = createNailRound(score, () => value);
+    assert.ok(round.x >= 16 && round.x <= 84); assert.ok(round.y >= 28 && round.y <= 74);
+    assert.ok(round.index >= 0 && round.index <= 8);
+    assert.ok(round.duration >= 800 && round.duration <= 3000);
+    assert.ok(round.rise >= 140 && round.rise <= 360);
+  }
+});
+test("hitting the board resets only the streak and leaves the live nail and earned points intact", () => {
+  const ready = reduce(initialNailGame, { type: "spawn", index: 2 });
+  const hit = reduce(ready, { type: "strike", index: 2 });
+  const next = reduce(hit, { type: "spawn", index: 5 });
+  const miss = reduce(next, { type: "miss" });
+  assert.equal(miss.streak, 0); assert.equal(miss.score, 1); assert.equal(miss.best, 1);
+  assert.equal(miss.nail, 5); assert.equal(miss.strike, -2);
+  assert.equal(next.streak, 1);
 });
 test("a remaining-time reference uses completed durations and becomes uncertain instead of promising zero", () => {
   const samples = [180000, 240000];
-  assert.deepEqual(estimateRemaining(60000, samples), { kind: "range", from: 1, to: 6 });
+  assert.deepEqual(estimateRemaining(60000, samples), { kind: "range", from: 2, to: 6 });
   const nearEnd = estimateRemaining(389999, samples);
   assert.equal(nearEnd.kind, "range"); assert.equal(nearEnd.to, 1);
   assert.deepEqual(estimateRemaining(390000, samples), { kind: "longer" });

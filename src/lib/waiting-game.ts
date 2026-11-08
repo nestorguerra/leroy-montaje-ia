@@ -10,10 +10,23 @@ export type NailGame = {
   message: string;
 };
 export const initialNailGame: NailGame = { nail: -1, previous: -1, sunk: -1, strike: -1, strikes: 0, score: 0, streak: 0, best: 0, message: "" };
-type Action = { type: "spawn"; index: number } | { type: "strike"; index: number } | { type: "rest" };
+type Action = { type: "spawn"; index: number } | { type: "strike"; index: number } | { type: "rest" } | { type: "miss" };
+
+export function createNailRound(score: number, random: () => number = Math.random) {
+  const sample = () => { const value = random(); return Number.isFinite(value) ? Math.max(0, Math.min(.999999, value)) : .5; };
+  const difficulty = Math.max(0, Math.min(40, Number.isFinite(score) ? score : 0));
+  return {
+    index: Math.floor(sample() * 9),
+    x: 16 + sample() * 68,
+    y: 28 + sample() * 46,
+    duration: Math.round(Math.max(800, (2400 - difficulty * 35) * (.65 + sample() * .6))),
+    rise: Math.round(140 + sample() * 220),
+  };
+}
 
 export function nailGameReducer(state: NailGame, action: Action): NailGame {
   if (action.type === "rest") return { ...state, nail: -1, sunk: -1, strike: -1, streak: 0 };
+  if (action.type === "miss") return { ...state, strike: -2, strikes: state.strikes + 1, streak: 0, message: "Has dado en la tabla. Prueba con el clavo." };
   if (!Number.isInteger(action.index) || action.index < 0 || action.index > 8) return state;
   if (action.type === "spawn") {
     const nail = action.index === state.previous ? (action.index + 1) % 9 : action.index;

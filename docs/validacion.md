@@ -2,6 +2,14 @@
 
 Última revisión: 8 de noviembre de 2026. Las pruebas del PDF real y del visor descritas más abajo corresponden al 7 de noviembre.
 
+## Logotipo oficial y LABS
+
+La corrección posterior del 8 de noviembre sustituye el cubo y el nombre escrito por el archivo original del logotipo triangular. LABS aparece a su derecha y Montaje de N debajo de LABS. La misma cabecera se comparte entre acceso demo, portada, espera y visor.
+
+Se comprobó la carga de la imagen y la cabecera a 320, 768, 1024 y 1440 px, sin desbordamientos ni solapamiento con OpenAI y Salir. El logotipo sigue visible en móvil: 68 por 40,97 px a 320 px, y 88 por 53,02 px en escritorio, conservando su proporción. Se revisaron visualmente móvil y escritorio. El nombre accesible del enlace conserva la marca, LABS y el subtítulo. No se observaron errores ni avisos de consola.
+
+El JPEG se conserva sin modificar, con procedencia, tamaño y hash documentados junto al archivo. No se usa una fuente aproximada para dibujar las letras del logotipo. Las fuentes corporativas siguen aplicándose a LABS y al subtítulo. No se han añadido pruebas unitarias para este cambio visual; se verifica la imagen, la interfaz y la compilación.
+
 ## Biblioteca de montajes
 
 Comprobación del 8 de noviembre con una compilación estática local, IndexedDB nativo del navegador integrado y dos modelos sintéticos privados. No se usó una API Key ni se llamó a OpenAI:
@@ -20,11 +28,25 @@ Las pruebas automáticas comprueban que el guardado no se anuncia hasta completa
 
 La pantalla privada, sus PDF sintéticos y sus controles no se incluyen en la publicación. No se ha repetido una interpretación real del manual ni cambiado el modelo o la petición de OpenAI.
 
-## Tipografía y minijuego de espera
+## Tabla ilustrada y estimación desde el primer uso
 
-Comprobación del 8 de noviembre con la compilación estática y una pantalla privada de prueba, sin llamadas de OpenAI:
+Revisión posterior del 8 de noviembre, comprobada en la compilación estática local con una espera privada simulada, sin llamadas a OpenAI:
 
-- Leroy Merlin Sans Regular y Bold originales, descargadas desde las rutas declaradas en los estilos corporativos. Next.js las sirve desde la propia aplicación y la cabecera muestra el nombre en mayúsculas y Labs con menor peso. La procedencia y los hashes están junto a las fuentes.
+- Tabla de madera vectorial, martillo y clavo con volumen, luces y sombras. Un solo objetivo recorre posiciones variables dentro de la superficie. Se observaron varias posiciones y velocidades de salida diferentes y se comprobaron aciertos consecutivos, doble toque con un único punto, teclado y pausa.
+- Tiempos de reacción entre 0,8 y 3 segundos, con variación aleatoria y dificultad creciente. Las pruebas automáticas comprueban sus límites, la separación de las posiciones respecto a los bordes y que golpear la tabla no retire el clavo ni los puntos ya ganados.
+- Objetivo táctil de 56 por 76 px en móvil y 64 por 88 px en escritorio. Tablas de 250 por 192 px a 320 px de ventana y 466,08 por 280 px a 1440 px. Sin desbordamiento horizontal a 320, 768, 1024 y 1440 px. En la vista inicial de 320 por 740 px, la tabla queda entre los 523 y 715 px de alto y se ve completa.
+- La ayuda de teclado se ajusta al objetivo móvil: se enfoca con Tab y se golpea con Espacio o Intro. Se comprobó Espacio. El juego con movimiento reducido comienza en pausa.
+- El tiempo restante aparece destacado desde el primer uso: referencia inicial de 3 a 10 minutos, identificada como estimación de la app. La referencia es una heurística declarada, no una medición ni una previsión de OpenAI. Una duración anterior ya permite usar datos reales; dos duraciones sintéticas mostraron la referencia correspondiente a dos guías.
+- Una espera simulada de once minutos sin historial mostró Más de lo previsto, mantuvo el reloj real y no anunció cero. Se comprobaron los estados de interpretación y revisión. Pausar el juego dejó avanzar el reloj de cero a veintitrés segundos.
+- Cancelar y recibir una guía simulada retiraron el juego. Sin avisos ni errores de consola durante estas comprobaciones. Los tiempos sintéticos se retiraron al finalizar.
+
+Se conserva la limitación del navegador integrado para comprobar la ocultación nativa de la pestaña. Las medidas móviles corresponden a viewports. La pantalla privada de prueba y sus controles se retiran antes de publicar.
+
+## Tipografía y minijuego de espera, primera versión
+
+Comprobación anterior del 8 de noviembre, antes de la revisión de la tabla ilustrada, con la compilación estática y una pantalla privada de prueba, sin llamadas de OpenAI:
+
+- Leroy Merlin Sans Regular y Bold originales, descargadas desde las rutas declaradas en los estilos corporativos. Next.js las sirve desde la propia aplicación. En esta comprobación anterior al cambio de logotipo, la cabecera mostraba el nombre en mayúsculas y Labs con menor peso. La cabecera actual usa el archivo oficial descrito arriba. La procedencia y los hashes están junto a las fuentes.
 - Tablero de nueve huecos con clavos que aparecen, golpe de martillo, aciertos, racha y mejor racha. Se comprobaron varios aciertos seguidos, el doble clic sin puntuación duplicada, Espacio para golpear y flechas para mover el foco.
 - Pausa y reanudación manual. El reloj siguió avanzando con el juego pausado. Movimiento reducido: el juego empieza en pausa y los controles permanecen disponibles.
 - Estado de interpretación y cambio a revisión, tiempo transcurrido, falta de estimación inicial y rango orientativo con dos duraciones sintéticas. Los límites y la espera más larga que la referencia se comprueban también en las pruebas automáticas. Nunca se anuncia cero como garantía de finalización.
@@ -56,7 +78,7 @@ Se utilizó únicamente una clave ficticia en un origen local de prueba. No se l
 ## Verificado en local
 
 - TypeScript, ESLint sin avisos y compilación estática de Next.js 16.4.2: correctos.
-- Treinta y nueve pruebas de regresión en `pnpm test`, incluidas cantidades y referencias del inventario interactivo, credenciales demo, sesión, almacenamiento, doble toque, rachas, tiempos de espera y biblioteca de montajes.
+- Cuarenta y una pruebas de regresión en `pnpm test`, incluidas cantidades y referencias del inventario interactivo, credenciales demo, sesión, almacenamiento, doble toque, rachas, tiempos y posiciones variables, estimaciones y biblioteca de montajes.
 - La petición usa `gpt-6.1-sol`, `reasoning.effort: "xhigh"`, 64.000 tokens máximos de salida, `stream: true`, `store: false` y esquema estricto. No incluye parámetros de muestreo ni cambia a un modelo alternativo.
 - Cada pieza contiene sus movimientos. El compilador asigna ids únicos, construye las referencias y deriva la pose final del último movimiento. Se comprueba el desplazamiento conjunto de 80 piezas con el mismo código impreso.
 - Un cilindro tiene un solo diámetro. Se rechazan páginas fuera del manual, índices de paso inexistentes, medidas inválidas y poses contradictorias de una pieza en un mismo paso. Una repetición idéntica se deduplica.
