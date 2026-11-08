@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, CircleAlert, FileText, KeyRound, LogOut } from "lucide-react";
 import StageView from "./StageView";
 import ConnectionDialog from "./montage/ConnectionDialog";
@@ -8,13 +8,15 @@ import PDFDropzone from "./montage/PDFDropzone";
 import GuideExperience from "./montage/GuideExperience";
 import Brand from "./montage/Brand";
 import GenerationWait from "./montage/GenerationWait";
+import GuideLibrary from "./montage/GuideLibrary";
 import { browserStorage, loadSavedApiKey, updateSavedApiKey } from "@/lib/browser-session";
 import { recordGenerationTime } from "@/lib/generation-timing";
+import { listLibrary, loadLibraryGuide, orderLibrary, saveLibraryGuide, type LibraryEntry, type LibraryInput } from "@/lib/guide-library";
 import { buildDayPlan } from "@/lib/leroy/day-plan";
 import { buildAIPlan } from "@/lib/ai/guide";
 import { generateGuide, MODELS, validateFiles, type GeneratedGuide } from "@/lib/ai/openai";
 
-type Result = { generated: GeneratedGuide; manualURL: string };
+type Result = { generated: GeneratedGuide; manualURL: string; libraryId: string };
 
 export default function ManualStudio({ onLogout }: { onLogout: () => void }) {
   const [connection, setConnection] = useState(() => { const key = loadSavedApiKey(browserStorage("localStorage")); return { key, saved: !!key }; });
@@ -29,13 +31,31 @@ export default function ManualStudio({ onLogout }: { onLogout: () => void }) {
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
+  const [library, setLibrary] = useState<LibraryEntry[]>([]);
+  const [libraryLoading, setLibraryLoading] = useState(true);
+  const [libraryError, setLibraryError] = useState("");
+  const [opening, setOpening] = useState<string | null>(null);
+  const [openError, setOpenError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [pendingSave, setPendingSave] = useState<LibraryInput | null>(null);
   const controller = useRef<AbortController | null>(null);
   const sourceURL = useRef("");
   const mounted = useRef(true);
   const selection = useRef(0);
   const dragDepth = useRef(0);
+  const saveSequence = useRef(0);
   const homeHeading = useRef<HTMLHeadingElement | null>(null);
   const preview = useMemo(() => buildDayPlan(), []);
+
+  const refreshLibrary = useCallback(async () => {
+    try {
+      const entries = await listLibrary();
+      if (mounted.current) { setLibrary(entries); setLibraryError(""); }
+    } catch (e) {
+      if (mounted.current) setLibraryError(e instanceof Error && !(e instanceof SyntaxError) ? e.message : "No se puede leer el histórico de este navegador.");
+    } finally { if (mounted.current) setLibraryLoading(false); }
+  }, []);
 
   useEffect(() => {
     mounted.current = true;
@@ -47,6 +67,45 @@ export default function ManualStudio({ onLogout }: { onLogout: () => void }) {
     return () => { mounted.current = false; controller.current?.abort(); URL.revokeObjectURL(sourceURL.current); motion.removeEventListener("change", update); };
   }, []);
 
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => { void refreshLibrary(); });
+    const refresh = () => { void refreshLibrary(); };
+    window.addEventListener("focus", refresh);
+    return () => { cancelAnimationFrame(frame); window.removeEventListener("focus", refresh); };
+  }, [refreshLibrary]);
+
+  async function persistGuide(input: LibraryInput) {
+    const sequence = ++saveSequence.current;
+    setPendingSave(input); setSaving(true); setSaveError("");
+    try {
+      const entry = await saveLibraryGuide(input);
+      if (!mounted.current) return;
+      setLibrary(previous => orderLibrary([entry, ...previous.filter(item => item.id !== entry.id)]));
+      setLibraryError(""); setLibraryLoading(false);
+      if (saveSequence.current === sequence) setPendingSave(null);
+    } catch (e) {
+      if (mounted.current && saveSequence.current === sequence) setSaveError(e instanceof Error ? e.message : "Vuelve a intentar guardar esta guía.");
+    } finally { if (mounted.current && saveSequence.current === sequence) setSaving(false); }
+  }
+
+  async function openGuide(id: string) {
+    if (controller.current || opening) return;
+    const request = ++selection.current;
+    setOpening(id); setOpenError("");
+    try {
+      const record = await loadLibraryGuide(id);
+      if (!mounted.current || request !== selection.current) return;
+      buildAIPlan(record.generated.guide);
+      const url = URL.createObjectURL(record.manual);
+      URL.revokeObjectURL(sourceURL.current); sourceURL.current = url;
+      setError(""); setPendingFile(null);
+      setResult({ generated: record.generated, manualURL: url, libraryId: record.id });
+      window.scrollTo(0, 0);
+    } catch (e) {
+      if (mounted.current && request === selection.current) setOpenError(e instanceof Error ? e.message : "No se ha podido abrir este montaje guardado.");
+    } finally { if (mounted.current) setOpening(null); }
+  }
+
   async function start(file: File, key: string) {
     if (controller.current) return;
     const abort = new AbortController(); controller.current = abort;
@@ -54,6 +113,7 @@ export default function ManualStudio({ onLogout }: { onLogout: () => void }) {
     setStartedAt(startTime); setBusy(true); setFilename(file.name); setError(""); setPendingFile(null); setResult(null);
     URL.revokeObjectURL(sourceURL.current); sourceURL.current = "";
     const timeout = setTimeout(() => abort.abort("timeout"), 15 * 60 * 1000);
+    let completed: LibraryInput | null = null;
     try {
       const generated = await generateGuide(key, [file], MODELS[0].id, abort.signal, setPhase);
       if (abort.signal.aborted || !mounted.current) return;
@@ -61,7 +121,8 @@ export default function ManualStudio({ onLogout }: { onLogout: () => void }) {
       buildAIPlan(generated.guide);
       const url = URL.createObjectURL(file); sourceURL.current = url;
       recordGenerationTime(browserStorage("localStorage"), MODELS[0].id, Date.now() - startTime);
-      setResult({ generated, manualURL: url });
+      completed = { id: crypto.randomUUID(), generated, manual: file };
+      setResult({ generated, manualURL: url, libraryId: completed.id });
     } catch (e) {
       if (!mounted.current) return;
       setError(abort.signal.aborted ? abort.signal.reason === "timeout" ? "La respuesta está tardando demasiado. Puedes volver a subir el PDF. OpenAI puede haber procesado la petición anterior." : "Has cancelado la lectura. Puedes subir otro manual cuando quieras. OpenAI puede haber iniciado el procesamiento." : e instanceof Error ? e.message : "No se ha podido leer el manual. Prueba con otra copia del PDF.");
@@ -70,6 +131,7 @@ export default function ManualStudio({ onLogout }: { onLogout: () => void }) {
       if (mounted.current) setBusy(false);
       controller.current = null;
     }
+    if (completed && mounted.current) void persistGuide(completed);
   }
   async function acceptFiles(files: File[]) {
     if (controller.current) return;
@@ -114,7 +176,8 @@ export default function ManualStudio({ onLogout }: { onLogout: () => void }) {
       </section>}
       {busy && <GenerationWait filename={filename} phase={phase} startedAt={startedAt} model={MODELS[0].id} reduceMotion={reduceMotion} onCancel={() => controller.current?.abort()}/>}
       {!busy && result && error && <div className="montage-error result-error" role="alert"><CircleAlert size={19}/><p>{error}</p></div>}
-      {!busy && result && <GuideExperience key={result.generated.createdAt} result={result.generated} manualURL={result.manualURL} onFiles={files => void acceptFiles(files)} dragging={dragging} reduceMotion={reduceMotion}/>}
+      {!busy && result && <GuideExperience key={result.libraryId} result={result.generated} manualURL={result.manualURL} onFiles={files => void acceptFiles(files)} dragging={dragging} reduceMotion={reduceMotion}/>}
+      {!busy && <GuideLibrary entries={library} loading={libraryLoading} opening={opening} activeId={result?.libraryId ?? null} error={libraryError} openError={openError} saving={saving} saveError={saveError} onOpen={id => void openGuide(id)} onReload={() => { setLibraryLoading(true); setLibraryError(""); void refreshLibrary(); }} onRetrySave={() => { if (pendingSave && !saving) void persistGuide(pendingSave); }}/>}
     </main>
     <footer className="montage-footer"><div><span><Check size={13}/> Tu manual no se publica.</span><p>Guía visual orientativa. Contrasta siempre el montaje con el manual original.</p><p>Proyecto independiente de Leroy Merlin. Motor 3D de <a href="https://github.com/Nutlope/bygga" target="_blank" rel="noreferrer">Bygga</a>, licencia MIT.</p></div></footer>
     {connectionOpen && <ConnectionDialog open connected={!!apiKey} remembered={keySaved} pendingName={pendingFile?.name} onDismiss={closeConnection} onConnect={connect} onDisconnect={disconnect}/>}

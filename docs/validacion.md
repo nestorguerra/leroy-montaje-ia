@@ -2,6 +2,24 @@
 
 Última revisión: 8 de noviembre de 2026. Las pruebas del PDF real y del visor descritas más abajo corresponden al 7 de noviembre.
 
+## Biblioteca de montajes
+
+Comprobación del 8 de noviembre con una compilación estática local, IndexedDB nativo del navegador integrado y dos modelos sintéticos privados. No se usó una API Key ni se llamó a OpenAI:
+
+- Estado inicial con cero, explicación del guardado automático y recuento de una y dos conversiones guardadas. Reintentar una escritura con el mismo identificador mantiene el recuento en dos.
+- Recargar y salir y volver a entrar con demo / demo conserva las dos entradas. La entrada más reciente aparece primero. Se conservan nombre, archivo, fecha, pasos y cantidades.
+- Abrir desde la biblioteca reconstruye el visor con las vistas Producto, Piezas y Montaje. Se comprobaron cinco piezas físicas, su agrupación como tablero y cuatro patas, y el salto del primer paso al quinto. La reapertura funciona sin conexión con OpenAI y no cambia el contador.
+- Apertura con Intro desde el botón de la biblioteca. El foco pasa al título del modelo y la página vuelve al visor. La entrada activa queda marcada como En pantalla.
+- Una guía de versión incompatible muestra un aviso. La biblioteca y la otra entrada siguen disponibles; la segunda guía se abrió correctamente. La muestra se restauró y después se retiraron únicamente las dos entradas privadas, con recuento final cero.
+- Biblioteca a 320, 768, 1024 y 1440 px sin desbordamientos horizontales. Los botones de apertura miden 44 px de alto; 144 px de ancho en escritorio. Se revisaron visualmente escritorio y móvil con un nombre y un archivo largos.
+- Sin avisos ni errores de consola en el recorrido de la aplicación.
+
+El navegador de comprobación bloqueó la apertura visual del enlace local blob del PDF. No se intentó eludir el bloqueo. La conservación completa del archivo y su recuperación byte a byte se comprueban en las pruebas automáticas; la apertura visual del PDF recuperado no se considera verificada en esta revisión.
+
+Las pruebas automáticas comprueban que el guardado no se anuncia hasta completar la transacción conjunta, que un fallo de cuota no deja una entrada parcial ni aumenta el contador, que una escritura reintentada no duplica entradas y que el almacenamiento no disponible se comunica como fallo. También rechazan guías incompletas, versiones incompatibles, referencias inválidas y archivos que no son PDF. La lista explícita de campos excluye claves y URL temporales. Los errores de cuota y almacenamiento bloqueado se prueban con un entorno controlado, sin llenar ni cambiar los permisos del navegador del usuario.
+
+La pantalla privada, sus PDF sintéticos y sus controles no se incluyen en la publicación. No se ha repetido una interpretación real del manual ni cambiado el modelo o la petición de OpenAI.
+
 ## Tipografía y minijuego de espera
 
 Comprobación del 8 de noviembre con la compilación estática y una pantalla privada de prueba, sin llamadas de OpenAI:
@@ -38,7 +56,7 @@ Se utilizó únicamente una clave ficticia en un origen local de prueba. No se l
 ## Verificado en local
 
 - TypeScript, ESLint sin avisos y compilación estática de Next.js 16.4.2: correctos.
-- Treinta y dos pruebas de regresión en `pnpm test`, incluidas cantidades y referencias del inventario interactivo, credenciales demo, sesión, almacenamiento, doble toque, rachas y tiempos de espera.
+- Treinta y nueve pruebas de regresión en `pnpm test`, incluidas cantidades y referencias del inventario interactivo, credenciales demo, sesión, almacenamiento, doble toque, rachas, tiempos de espera y biblioteca de montajes.
 - La petición usa `gpt-6.1-sol`, `reasoning.effort: "xhigh"`, 64.000 tokens máximos de salida, `stream: true`, `store: false` y esquema estricto. No incluye parámetros de muestreo ni cambia a un modelo alternativo.
 - Cada pieza contiene sus movimientos. El compilador asigna ids únicos, construye las referencias y deriva la pose final del último movimiento. Se comprueba el desplazamiento conjunto de 80 piezas con el mismo código impreso.
 - Un cilindro tiene un solo diámetro. Se rechazan páginas fuera del manual, índices de paso inexistentes, medidas inválidas y poses contradictorias de una pieza en un mismo paso. Una repetición idéntica se deduplica.

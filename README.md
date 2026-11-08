@@ -10,6 +10,7 @@ Copia independiente de la prueba Leroy Merlin, basada en el motor 3D de [Bygga](
 2. Arrastra el PDF completo del manual, hasta 20 MB, o toca la zona para elegirlo.
 3. Si hace falta, introduce tu API Key de OpenAI. Puedes marcar **Guardar clave en este navegador** para recordarla en próximas visitas.
 4. La guía aparece automáticamente con tres vistas: **Producto**, **Piezas** y **Montaje**. En móvil, la información queda debajo del modelo.
+5. Cada guía terminada se guarda automáticamente en **Tu biblioteca de montajes**, al final de la página. Allí ves cuántos manuales has convertido y puedes volver a abrir el modelo, las piezas, los pasos y su PDF original, sin otra petición a OpenAI.
 
 Arrastra el modelo para girarlo, usa la rueda o pellizca para acercarte. En **Producto** ves el resultado final. En **Piezas** puedes buscar por nombre o código y aislar una unidad. Las piezas idénticas se agrupan sin perder sus cantidades. En **Montaje** puedes reproducir la secuencia, pausar, avanzar dentro de cada paso, saltar al anterior o siguiente, repetir y reducir la velocidad. Puedes seguir girando y ampliando el modelo mientras se reproduce.
 
@@ -31,13 +32,19 @@ El acceso **demo / demo** es una puerta de demostración implementada en el clie
 
 Por defecto, la clave permanece solo en memoria de React y se borra al recargar o cerrar sesión. **Guardar clave en este navegador** está desmarcado inicialmente. Si lo marcas, la clave se guarda sin cifrar en `localStorage` del origen de esta web, con un nombre propio de la aplicación. Se recupera al volver a entrar. No se sincroniza entre dispositivos ni se envía a un servidor propio. El acceso demo no cifra ni protege ese almacenamiento frente a otras personas con acceso al navegador o al mismo origen.
 
-**Salir** cierra el acceso demo, cancela la lectura activa y retira la guía y la conexión de la sesión. Conserva una clave guardada voluntariamente. Para borrarla, abre **OpenAI** y pulsa **Desconectar y borrar clave**. También puedes desmarcar el guardado y pulsar **Guardar cambios** para seguir conectado solo en memoria. Si el navegador impide guardar o borrar, se muestra un error y no se anuncia que la operación haya terminado. No se registra la clave ni el contenido de los manuales.
+**Salir** cierra el acceso demo, cancela la lectura activa y retira la guía y la conexión de la sesión. Conserva una clave guardada voluntariamente. Para borrarla, abre **OpenAI** y pulsa **Desconectar y borrar clave**. También puedes desmarcar el guardado y pulsar **Guardar cambios** para seguir conectado solo en memoria. Si el navegador impide guardar o borrar, se muestra un error y no se anuncia que la operación haya terminado. No se escribe la clave ni el contenido de los manuales en registros de actividad.
+
+La biblioteca usa IndexedDB del navegador y guarda la guía completa y una copia local del PDF. Permanece al recargar o salir del acceso demo. Está vinculada a este navegador y dispositivo, sin sincronización ni cuenta personal. Borrar los datos de esta web elimina también la biblioteca; en una sesión privada el navegador puede retirarla al cerrarse. El acceso demo no protege los archivos de otras personas que usen ese mismo navegador. No se publican ni se envían a un servidor propio.
+
+Referencia de la implementación: [uso de IndexedDB y sus transacciones](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB), consultada el 8 de noviembre de 2026.
+
+El contador corresponde a las conversiones terminadas y guardadas. Abrir una guía o reintentar su guardado no lo incrementa. Un error o una cancelación de la generación no crea una entrada. No se recuperan conversiones de versiones anteriores que nunca se guardaron. Si falta espacio o el navegador bloquea el almacenamiento, la guía recién generada sigue abierta y se ofrece **Volver a guardar**. Nunca se anuncia un guardado antes de que se complete la transacción del PDF, el modelo y su resumen. Las credenciales y las URL temporales no se incluyen en la biblioteca.
 
 Soltar o elegir un PDF inicia la petición si ya hay una clave. En caso contrario, conectar la clave inicia el manual pendiente. Se usa `store: false`; esto no elimina las políticas de tratamiento o retención aplicables a la cuenta de OpenAI. El consumo se factura en esa cuenta de API.
 
 Una clave usada en el navegador puede ser leída por el propio navegador, sus extensiones y quien controle el dispositivo. Usa el guardado solo en un equipo propio. Para un servicio con autenticación real o una clave compartida se necesita un servidor con control de acceso y gasto. La [guía de claves de OpenAI](https://developers.openai.com/api/docs/guides/api-keys) recomienda mantener los secretos fuera del código del navegador; esta demostración permite usar y recordar una clave personal por decisión del usuario.
 
-El manual original solo tiene una URL local temporal en la pestaña. No se publica en GitHub.
+El manual original se abre mediante una URL local temporal que se reconstruye desde la biblioteca al recuperar una guía. No se publica en GitHub.
 
 ## Comprobación y revisión de la respuesta
 
@@ -92,6 +99,7 @@ GitHub Actions ejecuta las comprobaciones y publica `out/` al actualizar `main`.
 - `src/components/montage/GenerationWait.tsx` y `NailGame.tsx`: espera, reloj y minijuego.
 - `src/lib/browser-session.ts`: acceso demo y almacenamiento opcional de la clave.
 - `src/lib/generation-timing.ts` y `waiting-game.ts`: duraciones locales y reglas de los clavos.
+- `src/lib/guide-library.ts` y `src/components/montage/GuideLibrary.tsx`: biblioteca local, contador, validación, guardado atómico y reapertura de modelos y PDF.
 - `src/app/prueba-leroy/montage.css`: diseño adaptable.
 - `src/lib/ai/openai.ts`: peticiones y revisión limitada.
 - `src/lib/ai/blueprint.ts`: formato de generación y compilador de movimientos por pieza.
@@ -102,6 +110,7 @@ GitHub Actions ejecuta las comprobaciones y publica `out/` al actualizar `main`.
 - `tests/guide.test.mjs`: regresiones de referencias, revisión e inventario.
 - `tests/browser-session.test.mjs`: credenciales demo, cierre de sesión, guardado, borrado y almacenamiento bloqueado.
 - `tests/waiting.test.mjs`: doble toque, rachas, tiempos no disponibles, almacenamiento bloqueado y estimaciones que se alargan.
+- `tests/library.test.mjs`: modelos y PDF completos, exclusión de claves, datos inválidos, orden, guardado confirmado, fallo de cuota y ausencia de duplicados al reabrir o reintentar.
 - `src/engine/`: motor 3D de Bygga.
 - `src/lib/leroy/`, `src/data/leroy-*.json` y `docs/prueba-leroy/procedencia.json`: ejemplos originales.
 - [Decisiones de UX y referencias](docs/diseno-ux.md).

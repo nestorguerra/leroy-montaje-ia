@@ -26,7 +26,13 @@ El giro y el zoom funcionan durante la reproducción y la pausa. El menú Vistas
 
 No se prepara un vídeo plano ni se reemplaza el modelo. En escritorio, el contexto aparece a la derecha; en móvil, debajo. El paso actual está separado de la lista compacta de navegación. La lista mantiene visible el paso activo con desplazamiento propio, sin mover la página. Los controles tienen objetivos táctiles de al menos 44 px.
 
-El manual original y las simplificaciones están accesibles junto a la guía. El siguiente manual se puede arrastrar sobre la página o elegir al final. No se añaden galerías, cuentas personales ni historial.
+El manual original y las simplificaciones están accesibles junto a la guía. El siguiente manual se puede arrastrar sobre la página o elegir al final.
+
+La biblioteca solicitada el 8 de noviembre queda debajo de la portada y del visor. Su acción es recuperar un montaje terminado, con un recuento visible de manuales convertidos. Mantiene la jerarquía de la página: la carga del PDF sigue siendo la entrada principal. Una lista de filas muestra nombre, archivo, fecha, pasos y piezas, con una sola acción de apertura por entrada. Se evita crear un lienzo 3D adicional para cada miniatura.
+
+El estado vacío muestra cero y explica el guardado automático. La lectura inicial no presenta un cero ficticio mientras se recupera el recuento. Una reapertura indica la entrada activa y lleva el foco al título del visor. En móvil, el contador pasa debajo de la cabecera y cada fila distribuye los datos y la acción en dos líneas; los controles miden al menos 44 px. Los nombres largos se ajustan y los archivos se abrevian visualmente.
+
+La biblioteca conserva el PDF y el modelo completos en este navegador. Guardar solo el nombre dejaría inaccesibles los pasos y sus fuentes después de recargar. El recuento cambia al confirmar la escritura conjunta del resumen, la guía y el PDF. Reintentar la misma escritura conserva su identificador y no añade duplicados. La guía sigue disponible si el guardado falla, con aviso y reintento. Si falla una reapertura, las demás entradas permanecen accesibles. El pie explica la conservación local y el efecto de borrar los datos de la web. No se añade sincronización ni una cuenta personal.
 
 ## Sistema visual
 
